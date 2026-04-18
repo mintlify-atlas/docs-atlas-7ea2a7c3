@@ -1,0 +1,155 @@
+---
+title: "last30days changelog — version history"
+description: "Release notes for last30days: v3.0.x patches, v3.0.0 pipeline rewrite, and v2.x history. Covers plugin recovery for broken Claude Code installations."
+---
+
+This page documents every notable change to last30days since the initial public release. For the latest version, see the [GitHub repository](https://github.com/mvanhorn/last30days-skill).
+
+## v3.0.x patch releases
+
+### v3.0.5 — 2026-04-15
+
+**Added:** New `/last30days` slash command for Claude Code plugin users. A new `commands/last30days.md` file registers the command so that typing `/last30days <topic>` in Claude Code autocompletes to the canonical `/last30days:last30days` form — the same way `/ce:plan` resolves from `/compound-engineering:ce-plan`. The command delegates to the existing skill body with no behavior changes.
+
+**Removed:** `skills/last30days-nux/` — a byte-identical duplicate of the root `SKILL.md` that was generating confusing `/last30days:last30days-nux` autocomplete entries via Claude Code's plugin namespacing. The root `SKILL.md` remains the canonical skill source.
+
+<AccordionGroup>
+  <Accordion title="Recovery for v3.0.5">
+    ```
+    /plugin update last30days
+    /reload-plugins
+    ```
+    Then type `/last30days <topic>` to invoke via slash command. Natural-language invocation continues to work unchanged.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### v3.0.4 — 2026-04-15
+
+**Fixed:** Cleared `/doctor` path-escape error on Claude Code v2.1.109+. The `.claude-plugin/plugin.json` manifest previously declared `"skills": ["./"]`, which current Claude Code versions reject with `Path escapes plugin directory: ./ (skills)`. The `"skills"` key is now omitted entirely, matching the pattern used across the Claude Code marketplace ecosystem. Claude Code auto-discovers `skills/*/SKILL.md` when the key is absent.
+
+<AccordionGroup>
+  <Accordion title="Recovery for v3.0.4">
+    If `/doctor` reports a path-escape error for last30days:
+
+    ```
+    /plugin update last30days
+    /reload-plugins
+    ```
+
+    If errors persist, uninstall and reinstall the plugin.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### v3.0.3 — 2026-04-15
+
+**Fixed:** Restored `skills/` and `.claude-plugin/` to the plugin install tarball. v3.0.1 introduced `.gitattributes` rules that excluded both directories from `git archive` output. Since Claude Code's `/plugin install` fetches the same archive, users installing v3.0.1 or v3.0.2 received a tarball with no plugin manifest and no skill files. This release reverts those `.gitattributes` lines.
+
+<Note>
+  Users on v3.0.1 or v3.0.2: run `/plugin update last30days` then `/reload-plugins`. If `autoUpdate` is enabled, the next session will pull v3.0.3 automatically. Users on cached v3.0.0 installs were unaffected.
+</Note>
+
+---
+
+### v3.0.2 — 2026-04-15
+
+**Fixed:** `/last30days` slash command now registers on Claude Code v2.1.105+. The plugin manifest declared `"skills": ["./"]`, which newer Claude Code rejects — causing the command to silently fail to register so that `/last30days <query>` returned "Unknown command" even when `/plugin list` showed the plugin as installed.
+
+**Fixed:** Version drift between `.claude-plugin/marketplace.json` (pinned to `3.0.0`) and `.claude-plugin/plugin.json` (advertising `3.0.1`). Both manifests now agree on `3.0.2`.
+
+---
+
+### v3.0.1 — 2026-04-14
+
+**Fixed:** Skill upload packaging. `scripts/build-skill.sh` now produces a claude.ai-upload-ready `.skill` file under the 200-file cap. Previously, zipping the repo hit 406 files and the Upload skill UI rejected it.
+
+**Fixed:** `SKILL.md` description length — trimmed from 228 to 167 characters (Anthropic caps descriptions at 200).
+
+**Removed:** Unused root `vendor/` directory (215 files from an accidental commit in PR #48 — the real vendored X client lives at `scripts/lib/vendor/bird-search/`). Also removed the legacy top-level `plans/` directory.
+
+**Added:** `.gitattributes` with `export-ignore` entries so `git archive` drops tests, docs, fixtures, and internal skill subdirectories. Added `scripts/build-skill.sh` for one-command `.skill` bundle creation.
+
+---
+
+## v3.0.0 — 2026-04-11
+
+v3 is a major engine rewrite. The skill no longer just searches for your topic — it figures out *where* to search before the first API call fires. Engine architecture by [@j-sperling](https://github.com/j-sperling).
+
+### What's new in v3
+
+<CardGroup cols={2}>
+  <Card title="Intelligent pre-research" icon="brain">
+    A Python brain resolves X handles, subreddits, TikTok hashtags, and YouTube channels before any API calls run. Resolution is bidirectional: person-to-company and product-to-founder.
+  </Card>
+  <Card title="Best Takes judge" icon="star">
+    A second parallel LLM judge scores results for humor, cleverness, and virality. The highest-scoring reactions surface in a dedicated output section.
+  </Card>
+  <Card title="Cross-source cluster merging" icon="object-group">
+    Entity-based overlap detection merges the same story found across Reddit, X, and YouTube into one cluster instead of three separate items.
+  </Card>
+  <Card title="Single-pass comparisons" icon="arrows-left-right">
+    "X vs Y" queries now run one pass with entity-aware subqueries instead of three serial passes — 3 minutes instead of 12+.
+  </Card>
+  <Card title="GitHub as a source" icon="github">
+    Stars, reactions, and comments from repos and issues. Person-mode fetches PR velocity, top repos, and release notes. Project-mode fetches live star counts, README snippets, and top issues.
+  </Card>
+  <Card title="Per-author cap" icon="user-minus">
+    Maximum 3 items per author across all sources, preventing single-voice dominance in results.
+  </Card>
+  <Card title="ELI5 mode" icon="child">
+    Say "eli5 on" after any research run for plain-language synthesis that assumes zero background knowledge. Say "eli5 off" to revert.
+  </Card>
+  <Card title="Perplexity Sonar via OpenRouter" icon="globe">
+    One `OPENROUTER_API_KEY` powers planning, reranking, and Perplexity Sonar as an additive source. Returns structured narratives with specific dates, names, and numbers that social sources miss.
+  </Card>
+</CardGroup>
+
+### Additional v3 additions
+
+- **Free Reddit comments** — public Reddit JSON endpoint, no API key required; sorted by total engagement (upvotes + comments)
+- **YouTube transcripts widened 3×** — candidate pool expanded past music videos to reach talk and review content with captions
+- **Threads, Pinterest, YouTube comments, TikTok comments** — opt-in via `INCLUDE_SOURCES` with a `SCRAPECREATORS_API_KEY`
+- **Polymarket noise filtering** — shows % odds only; dollar volumes removed from display
+- **OpenClaw as first-class citizen** — auto-resolve and device auth for frictionless setup on non-WebSearch platforms
+- **Perplexity Deep Research** — `--deep-research` flag for exhaustive 50+ citation reports (~$0.90/query)
+- **1,012 tests passing**
+
+---
+
+## v2.x releases
+
+### v2.9.x — 2026-03-05 to 2026-03-06
+
+Auto-save research briefings to `~/Documents/Last30Days/` as topic-named `.md` files after every run. Switched save from `run_in_background` to foreground Bash to prevent model re-engagement after save callbacks. Moved save into the Python script via `--save-dir` to eliminate extra tool calls.
+
+### v2.9.0 — 2026-03-05
+
+ScrapeCreators Reddit as the default backend (one `SCRAPECREATORS_API_KEY` covers Reddit, TikTok, and Instagram). Smart subreddit discovery with relevance-weighted scoring. Top comments elevated with 10% scoring weight and prominent display. Comment excerpt length increased from 300 to 400 characters.
+
+### v2.8.0 — 2026-03-04
+
+Instagram Reels added as the 8th research source via ScrapeCreators API. TikTok migrated from Apify to ScrapeCreators. One `SCRAPECREATORS_API_KEY` now covers both TikTok and Instagram.
+
+### v2.1.0 — 2026-02-15
+
+Three headline features: watchlists (SQLite-backed, FTS5, WAL mode), YouTube as a 4th source via `yt-dlp` with transcript extraction, and OpenAI Codex CLI compatibility. Bundled X search via a vendored subset of the Bird Twitter GraphQL client (MIT, no external CLI needed). Added native web search backends for Brave, Parallel AI, and OpenRouter. Two-phase search architecture, engagement-weighted scoring, and `--days=N` configurable lookback.
+
+### v1.0.0 — 2026-01-15
+
+Initial public release. Reddit and X search via OpenAI Responses API and xAI API.
+
+---
+
+## Plugin recovery commands
+
+If you are on a broken plugin version (v3.0.1 or v3.0.2), run these two commands in Claude Code to update and reload:
+
+```
+/plugin update last30days
+/reload-plugins
+```
+
+If `/doctor` still reports errors after reloading, uninstall and reinstall the plugin from the marketplace.

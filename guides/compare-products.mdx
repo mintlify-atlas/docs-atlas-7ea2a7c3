@@ -1,0 +1,115 @@
+---
+title: "Compare two products or tools with last30days"
+description: "Run a side-by-side comparison of any two products, tools, or ideas across Reddit, X, YouTube, and GitHub — with live star counts and community sentiment."
+---
+
+Append `vs` to any last30days query and the engine switches into comparison mode: it runs a single optimized pass that covers both entities simultaneously, pulls live GitHub star counts from the API, and produces a side-by-side table alongside narrative from each side's community.
+
+## Comparison syntax
+
+```bash
+/last30days Claude Code vs Codex
+/last30days OpenClaw vs Hermes vs Paperclip
+/last30days React vs Vue
+/last30days CLI vs MCP for AI agents
+```
+
+The engine parses `vs` to identify both sides, resolves their handles and repos, then runs one coordinated research pass — not two separate searches stitched together.
+
+## What a comparison produces
+
+Run `/last30days OpenClaw vs Hermes vs Paperclip` and you'd get: "These aren't competitors, they're layers." OpenClaw is the executor (351K GitHub stars, live), Hermes is the self-improving brain (31K stars), Paperclip is the org chart (49K stars). Star counts are pulled live from the GitHub API — not from a blog post that cited numbers three months ago. The output includes a side-by-side table with architecture, memory, security, and best-for dimensions, plus community quotes from each side. Per @IMJustinBrooke: "OpenClaw = Charmander, Hermes = Charizard."
+
+<CardGroup cols={2}>
+  <Card title="Live GitHub star counts" icon="star">
+    Star counts fetched from the GitHub API at query time. Always current, never stale.
+  </Card>
+  <Card title="Side-by-side table" icon="table">
+    Architecture, memory, security, and best-for dimensions compared across both entities.
+  </Card>
+  <Card title="Community sentiment" icon="comments">
+    What each side's community is actually saying — strengths, weaknesses, and the head-to-head debate.
+  </Card>
+  <Card title="Single-pass speed" icon="bolt">
+    Both entities researched simultaneously. ~3 minutes instead of 12+ for the old 3-serial-pass approach.
+  </Card>
+</CardGroup>
+
+## How comparison mode works
+
+The v3 single-pass comparison engine resolves both entities upfront and generates a coordinated query plan before any API calls fire.
+
+<Steps>
+  <Step title="Parse both entities">
+    The engine splits on ` vs ` (with spaces) to identify `TOPIC_A` and `TOPIC_B`. For multi-way comparisons like "OpenClaw vs Hermes vs Paperclip", it resolves all three.
+  </Step>
+  <Step title="Resolve handles and repos for both sides">
+    Handle resolution runs for both entities simultaneously — X accounts, company handles, commentator accounts, and GitHub repos. For a product comparison, both repos get resolved so live star counts can be fetched from the GitHub API.
+  </Step>
+  <Step title="Generate an entity-aware query plan">
+    Instead of running separate passes, the engine builds one plan with 3–4 coordinated subqueries:
+
+    | Subquery | Purpose |
+    |---|---|
+    | `"{A} vs {B}"` | Head-to-head rivalry content and direct comparisons |
+    | `"{A} news {month} {year}"` | Entity A-specific developments |
+    | `"{B} news {month} {year}"` | Entity B-specific developments |
+    | `"{company_A} {company_B} {domain} news"` | Optional industry context |
+
+    All subqueries run across all configured sources. The fusion engine deduplicates across subqueries — the same story appearing in multiple subquery results is merged into one cluster.
+  </Step>
+  <Step title="Synthesize into a structured comparison">
+    The output follows a fixed format: quick verdict, per-entity sections (sentiment, strengths, weaknesses), head-to-head table, and a bottom-line recommendation based on actual community data.
+  </Step>
+</Steps>
+
+## The comparison output format
+
+```text
+# {TOPIC_A} vs {TOPIC_B}: What the Community Says (Last 30 Days)
+
+## Quick verdict
+[1-2 sentence summary: which one the community prefers and why, with source counts]
+
+## {TOPIC_A}
+Community sentiment: Positive/Mixed/Negative (N mentions across sources)
+Strengths: what people love
+Weaknesses: common complaints
+
+## {TOPIC_B}
+Community sentiment: Positive/Mixed/Negative (N mentions across sources)
+Strengths: what people love
+Weaknesses: common complaints
+
+## Head-to-head
+| Dimension    | {TOPIC_A}       | {TOPIC_B}       |
+|--------------|-----------------|-----------------|
+| Architecture | ...             | ...             |
+| Memory       | ...             | ...             |
+| Security     | ...             | ...             |
+| Best for     | ...             | ...             |
+
+## The bottom line
+Choose {TOPIC_A} if... Choose {TOPIC_B} if...
+```
+
+## Tips for product comparisons
+
+<AccordionGroup>
+  <Accordion title="Use exact product names as they appear on GitHub">
+    The engine resolves GitHub repos from the product name. If you use a nickname or abbreviation that doesn't match the repo name, the live star count lookup may miss. Use the name as it appears on GitHub for best resolution.
+  </Accordion>
+  <Accordion title="Live star counts override everything else">
+    Blog posts, YouTube videos, and tweets frequently cite outdated star counts. The comparison engine fetches live star counts directly from the GitHub API. When you see `(live: NNK stars)` in the output, that number is authoritative — it was fetched at query time.
+  </Accordion>
+  <Accordion title="The fusion engine deduplicates across subqueries">
+    The same story appearing in the head-to-head subquery and the entity-specific subquery gets merged into one cluster. You won't see the same content reported twice from different angles.
+  </Accordion>
+  <Accordion title="For abstract comparisons like 'CLI vs MCP', add domain context">
+    For concepts rather than named products, adding context helps: `/last30days CLI vs MCP for AI agents` is more specific than `/last30days CLI vs MCP`. The engine uses the domain context to generate better subqueries and find more relevant community discussion.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Comparison mode replaces the old 3-serial-pass approach that took 12+ minutes. The v3 single-pass engine with entity-aware subqueries runs the same depth in about 3 minutes.
+</Note>

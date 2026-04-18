@@ -1,0 +1,100 @@
+---
+title: "How last30days scores and ranks results"
+description: "last30days ranks search results by real engagement — Reddit upvotes, X likes, YouTube views, Polymarket odds — not SEO or editorial selection."
+---
+
+Most search tools rank results by SEO: domain authority, keyword density, backlinks. last30days ranks by what real people actually engaged with. A Reddit thread with 1,500 upvotes is a stronger signal than a blog post nobody read. A TikTok with 3.6M views tells you more about cultural relevance than a press release. Polymarket odds backed by $66K in volume are harder to argue with than a pundit's guess.
+
+This is social relevancy, not SEO relevancy — and it changes what surfaces in your brief.
+
+## Per-source engagement signals
+
+Every source has its own engagement currency. The scoring engine converts them into a comparable scale.
+
+<Tabs>
+  <Tab title="Reddit">
+    **Signal: upvote count**
+
+    Reddit upvotes are direct democracy. Every upvote is one person saying "yes, this is worth reading." The score engine uses net upvote counts from the public JSON API — not estimated engagement, not likes on a share, the actual vote tally from the community that discussed your topic.
+
+    Top comments are fetched alongside threads and scored separately. A thread with 500 upvotes but a top comment with 1,200 upvotes is a signal that the real insight is in the comments — and the synthesis reflects that.
+  </Tab>
+  <Tab title="X / Twitter">
+    **Signals: likes, retweets, view counts**
+
+    X engagement is multi-dimensional. A post with 10,000 views and 50 likes tells a different story than one with 500 views and 50 likes. The engine uses all three signals weighted by type: likes are the strongest indicator of endorsement, retweets indicate amplification, and view counts indicate reach.
+  </Tab>
+  <Tab title="YouTube">
+    **Signals: view counts, likes, transcript quality**
+
+    YouTube views are the broadest reach signal in the pipeline. A video with 653K views is not just popular — it means 653K people chose to spend time on this topic. Likes confirm the view experience was positive.
+
+    Transcript quality is a secondary signal: videos with dense, quotable transcripts score higher because they provide more evidence for the synthesis. A 45-minute deep-dive with a full transcript is more valuable than a 30-second clip with no captions.
+  </Tab>
+  <Tab title="TikTok">
+    **Signals: views, likes, shares**
+
+    TikTok shares are the strongest engagement signal on the platform — sharing a video means actively pushing it to your own audience. Views show reach, likes show approval, and shares show amplification intent. The combination captures both the size of the audience and the strength of their endorsement.
+  </Tab>
+  <Tab title="Hacker News">
+    **Signals: points, comment count**
+
+    HN points represent upvotes from a specific community: developers and technical people. 825 points on HN is meaningful in a way that differs from 825 Reddit upvotes — the HN audience is smaller and more selective. Comment count is a secondary signal indicating how much the community wanted to debate the topic.
+  </Tab>
+  <Tab title="Polymarket">
+    **Signal: probability percentage (backed by real money)**
+
+    Polymarket is unlike every other source in the pipeline. Probability percentages are not opinions — they are the aggregate judgment of people who put real money on an outcome. A market at 96% with volume behind it is more reliable than 100 tweets on the same question. The engine surfaces the % odds and directional movement (up or down since last check), never the dollar volume.
+
+    <Note>
+      The synthesis shows only probability percentages from Polymarket — never dollar amounts. The odds are the insight; the liquidity figures are internal metrics that mean nothing to readers.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Score components
+
+Each result receives a single composite score combining three components:
+
+**Relevance** — how closely the content matches your topic and the subquery that found it. Resolved handles and subreddits from the pre-research stage boost relevance for content that is unambiguously about your entity.
+
+**Recency** — how close the content is to today's date, weighted by the freshness mode for your query type (see below). A post from two days ago scores higher than one from 28 days ago, all else equal.
+
+**Engagement** — the platform-specific signal described above, normalized to a comparable scale. A Reddit thread with 5,000 upvotes and a YouTube video with 500K views end up on comparable footing.
+
+The three components are combined into a final popularity-aware score. "Popularity-aware" means engagement is not just one factor among three — it actively modulates the relevance score. Highly engaging content gets a relevance multiplier; content with zero engagement is penalized even if it looks textually relevant.
+
+## Freshness modes
+
+The pipeline applies different recency weights depending on what kind of content your query is about.
+
+| Mode | When it applies | Behavior |
+|---|---|---|
+| `strict_recent` | Breaking news, predictions | Heavy penalty for content older than 7 days. Recent items dominate. |
+| `balanced_recent` | Default for most queries | Smooth recency curve across 30 days. Recent items are preferred but older high-engagement content still surfaces. |
+| `evergreen_ok` | Concepts, tutorials, how-to queries | Recency weight is reduced. A high-engagement tutorial from 25 days ago can outrank a low-engagement one from today. |
+
+## Per-author cap
+
+No single voice dominates your brief. The engine enforces a maximum of 3 items per author across all results. If one creator posted 12 times about your topic, only their 3 highest-scoring posts appear. This prevents a single prolific account from crowding out the broader community signal.
+
+## Best Takes scoring
+
+Every result is scored twice: once for relevance, and once for humor, wit, and virality. The second judge identifies the cleverest one-liners, the most shareable quotes, and the reactions that capture a cultural moment in a sentence.
+
+Tommy Lloyd's "My Michael Jordan is Steve Kerr" scores low on relevance to "Arizona Basketball" but off the charts on the fun score. These results appear in the **Best Takes** section at the end of every brief — mixed into the narrative where they fit naturally, not dumped in a separate section.
+
+<Tip>
+  The Best Takes section is not a toggle — it runs on every research brief. Reddit and X people are often funny, and the old approach of scoring only for relevance buried their best work.
+</Tip>
+
+## Cross-source cluster merging
+
+When the same story appears on multiple platforms, the engine merges the results into one cluster rather than listing them separately. The cluster score is higher than any individual item's score, because confirmation across platforms is strong evidence that something matters.
+
+Entity-based overlap detection catches matches even when the titles use different words. "Wireless cancelled" on Reddit and "Wireless Festival is done" on X resolve to the same cluster. A cluster with items from Reddit, X, and YouTube is treated as the highest-confidence signal in your brief.
+
+Clusters are tagged with their uncertainty level:
+- No tag — confirmed across multiple sources
+- `single-source` — only one platform found this story; treat with caution
+- `thin-evidence` — all items scored below 55; the story may be emerging or niche

@@ -1,0 +1,167 @@
+---
+title: "last30days output modes: compact, json, context, md"
+description: "The --emit flag controls last30days output: compact for interactive reading, json for pipelines, context for skill embedding, and md for full debug inspection."
+---
+
+The `--emit` flag controls what last30days writes to stdout. Choose the mode that matches how you plan to consume the results: interactive reading, programmatic processing, embedding in another skill, or debugging.
+
+```bash
+python3 scripts/last30days.py "topic" --emit=<mode>
+```
+
+## compact (default)
+
+The primary user-facing mode. Produces pre-synthesized clusters grouped by theme, with citations, engagement stats, and a brief narrative synthesis per cluster.
+
+```bash
+python3 scripts/last30days.py "Sam Altman"
+python3 scripts/last30days.py "Sam Altman" --emit=compact
+```
+
+Use `compact` for:
+
+- Interactive research runs in Claude Code or the terminal
+- Reading results directly as a human
+- Most day-to-day use of the skill
+
+<Tip>
+  When you run `/last30days <topic>` in Claude Code, compact is what Claude receives and synthesizes from.
+</Tip>
+
+## json
+
+Emits the full normalized data dump as a JSON object. Every source is included with its raw items, scores, and metadata. This is the most complete representation of a run.
+
+```bash
+python3 scripts/last30days.py "topic" --emit=json
+python3 scripts/last30days.py "topic" --emit=json > research.json
+```
+
+The JSON object includes:
+
+- `topic` — the research query string
+- `items_by_source` — map of source name → array of normalized items with scores
+- `query_plan` — the resolved query plan used for this run, including source weights
+- `errors_by_source` — any per-source errors encountered during retrieval
+
+Use `json` for:
+
+- Programmatic processing or downstream pipelines
+- Storing raw data for later analysis
+- Diffing two research runs
+
+<Note>
+  When `--save-dir` is set and `--emit=json`, the saved file is named `{slug}-raw-{suffix}.json`. For all other emit modes, the saved file is a `.md` full dump regardless of what was printed to stdout.
+</Note>
+
+## context
+
+Produces a compact reusable snippet designed for injection into other skills or Claude prompts. Smaller than `compact` output, optimized to fit inside LLM context windows without consuming excessive tokens.
+
+```bash
+python3 scripts/last30days.py "topic" --emit=context
+```
+
+The output is also written to:
+
+```
+~/.local/share/last30days/out/last30days.context.md
+```
+
+This lets other skills read the latest research context from a predictable path without re-running the pipeline:
+
+```bash
+# Inline injection from a skill definition
+!python3 ~/.claude/skills/last30days/scripts/last30days.py "your topic" --emit=context
+
+# Read from the cached file
+!cat ~/.local/share/last30days/out/last30days.context.md
+```
+
+Use `context` for:
+
+- Feeding research results into a second skill or prompt
+- Embedding recent findings as background context for another task
+- Keeping token usage low when the full `compact` output is too large
+
+## md
+
+Writes the full markdown debug artifact — all items, all sources, and full transcripts — to stdout. This is the same content that gets saved to disk when you use `--save-dir`, regardless of the active `--emit` mode.
+
+```bash
+python3 scripts/last30days.py "topic" --emit=md
+```
+
+Use `md` for:
+
+- Inspecting exactly what was retrieved from each source
+- Debugging missing items or unexpected ranking
+- Auditing full transcripts from YouTube or TikTok
+
+<Warning>
+  `--emit=md` is a debugging and inspection mode. It is not recommended as the primary user-facing flow — the output is verbose and unformatted for interactive reading.
+</Warning>
+
+## Output file locations
+
+When you pass `--save-dir`, last30days writes a file in addition to printing to stdout.
+
+<Tabs>
+  <Tab title="Markdown (default)">
+    For all emit modes except `json`, the saved file is always the full markdown dump:
+
+    ```
+    {--save-dir}/{slug}-raw.md
+    {--save-dir}/{slug}-raw-{--save-suffix}.md
+    ```
+
+    Example:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" \
+      --save-dir=~/Documents/Last30Days \
+      --save-suffix=v3
+    # Saves to: ~/Documents/Last30Days/sam-altman-raw-v3.md
+    ```
+  </Tab>
+  <Tab title="JSON">
+    When `--emit=json`, the saved file uses a `.json` extension:
+
+    ```
+    {--save-dir}/{slug}-raw.json
+    {--save-dir}/{slug}-raw-{--save-suffix}.json
+    ```
+
+    Example:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" \
+      --emit=json \
+      --save-dir=~/Documents/Last30Days \
+      --save-suffix=v3
+    # Saves to: ~/Documents/Last30Days/sam-altman-raw-v3.json
+    ```
+  </Tab>
+  <Tab title="Context cache">
+    When `--emit=context`, the snippet is also written to a fixed path:
+
+    ```
+    ~/.local/share/last30days/out/last30days.context.md
+    ```
+
+    This path is overwritten on each `context` run. If you need to preserve multiple context snapshots, use `--save-dir` alongside `--emit=context`.
+  </Tab>
+</Tabs>
+
+<Note>
+  If a file at the target path already exists, last30days appends the current date to the filename to avoid overwriting: `{slug}-raw-{suffix}-2026-04-18.md`.
+</Note>
+
+## Choosing a mode
+
+| Goal | Mode |
+|---|---|
+| Read results interactively | `compact` (default) |
+| Feed results into Claude Code or another skill | `context` |
+| Process results programmatically | `json` |
+| Debug retrieval or inspect full transcripts | `md` |

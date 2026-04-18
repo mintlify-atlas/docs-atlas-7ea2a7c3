@@ -1,0 +1,164 @@
+---
+title: "Configure which sources last30days searches"
+description: "Control which platforms last30days searches using INCLUDE_SOURCES, source flags, and per-run CLI options. Add or remove TikTok, Instagram, Perplexity, and more."
+---
+
+last30days searches multiple platforms in parallel and merges the results into a single briefing. Some sources are always on; others activate automatically based on installed tools or credentials; and a set of optional sources you enable explicitly.
+
+## Source availability at a glance
+
+<CardGroup cols={3}>
+  <Card title="Always on" icon="check">
+    Reddit, Hacker News, Polymarket — no configuration needed
+  </Card>
+  <Card title="Auto-detected" icon="magnifying-glass">
+    GitHub (if `gh` CLI is installed), YouTube (if `yt-dlp` is installed)
+  </Card>
+  <Card title="Auth-dependent" icon="key">
+    X/Twitter, Bluesky, TikTok, Instagram, and more — require credentials
+  </Card>
+</CardGroup>
+
+## Always-on sources
+
+These sources work immediately with no setup:
+
+| Source | Notes |
+|---|---|
+| Reddit | Threads and top comments via public JSON |
+| Hacker News | Free Algolia API, no key needed |
+| Polymarket | Gamma API, no key needed |
+
+## Auto-detected sources
+
+last30days checks for these tools at startup and enables the source if they are found:
+
+| Source | Detection check | How to install |
+|---|---|---|
+| GitHub | `which gh` | `brew install gh` |
+| YouTube | `which yt-dlp` | `brew install yt-dlp` |
+
+No configuration is needed beyond having the tool installed. GitHub search requires no API key when `gh` CLI is present.
+
+## Auth-dependent sources
+
+These sources activate when the corresponding credentials are set in `~/.config/last30days/.env`:
+
+| Source | Required credential |
+|---|---|
+| X/Twitter | `FROM_BROWSER=auto`, `XAI_API_KEY`, or `AUTH_TOKEN` + `CT0` |
+| Bluesky | `BSKY_HANDLE` + `BSKY_APP_PASSWORD` |
+| TikTok | `SCRAPECREATORS_API_KEY` + `tiktok` in `INCLUDE_SOURCES` |
+| Instagram | `SCRAPECREATORS_API_KEY` + `instagram` in `INCLUDE_SOURCES` |
+
+See [API keys and credentials](/configuration/api-keys) for instructions on obtaining each credential.
+
+## INCLUDE_SOURCES — optional sources
+
+`INCLUDE_SOURCES` is a comma-separated list of additional sources to enable. These sources require a `SCRAPECREATORS_API_KEY` (except `perplexity`, which requires `OPENROUTER_API_KEY`).
+
+```bash ~/.config/last30days/.env
+INCLUDE_SOURCES=tiktok,instagram
+```
+
+**Valid values:**
+
+| Value | What it adds |
+|---|---|
+| `tiktok` | TikTok videos and captions |
+| `instagram` | Instagram Reels and captions |
+| `threads` | Threads posts |
+| `pinterest` | Pinterest pins |
+| `youtube_comments` | Top comments on YouTube videos |
+| `tiktok_comments` | Top comments on TikTok videos |
+| `perplexity` | Perplexity Sonar AI-synthesized research with citations |
+
+**Recommended starting point:**
+
+```bash
+echo "INCLUDE_SOURCES=tiktok,instagram" >> ~/.config/last30days/.env
+```
+
+**To enable everything:**
+
+```bash
+echo "INCLUDE_SOURCES=tiktok,instagram,threads,pinterest,youtube_comments,tiktok_comments" >> ~/.config/last30days/.env
+```
+
+<Note>
+Each source in `INCLUDE_SOURCES` uses one ScrapeCreators API call per search run. Your 10,000 free calls last a long time at typical usage, but keep this in mind if you enable many sources.
+</Note>
+
+## Per-run source override
+
+Use `--search` to override which sources are searched for a single run without changing your `.env`:
+
+```bash
+python3 scripts/last30days.py "topic" --search=reddit,x,youtube
+```
+
+This replaces the active source list for that run only. Sources not listed are skipped even if they are configured.
+
+## Per-run targeting flags
+
+These flags narrow the search within a platform to specific communities, accounts, or hashtags. They apply to a single run and do not change your configuration.
+
+```bash
+python3 scripts/last30days.py "topic" \
+  --subreddits=ClaudeAI,MachineLearning \
+  --x-handle=sama \
+  --tiktok-hashtags=samaltman,openai
+```
+
+**Available targeting flags:**
+
+<AccordionGroup>
+  <Accordion title="--subreddits">
+    Restrict Reddit search to specific subreddits. Comma-separated, no `r/` prefix.
+
+    ```bash
+    python3 scripts/last30days.py "Claude Code" --subreddits=ClaudeAI,programming
+    ```
+  </Accordion>
+
+  <Accordion title="--x-handle">
+    Search a specific X/Twitter account as the primary source.
+
+    ```bash
+    python3 scripts/last30days.py "OpenAI news" --x-handle=openai
+    ```
+  </Accordion>
+
+  <Accordion title="--tiktok-hashtags">
+    Search TikTok by specific hashtags. Comma-separated, no `#` prefix.
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" --tiktok-hashtags=samaltman,openai
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Deep research mode
+
+The `--deep-research` flag runs an exhaustive Perplexity Sonar Pro search that returns 50+ citation reports instead of the standard summary.
+
+```bash
+python3 scripts/last30days.py "topic" --deep-research
+```
+
+<Warning>
+Deep research requires `OPENROUTER_API_KEY` in your `.env`. Each query costs approximately $0.90 via Perplexity Sonar Pro.
+</Warning>
+
+This mode is useful for topics that need rigorous sourcing — regulatory filings, scientific findings, legal developments, or any topic where you want named sources, specific dates, and verifiable citations.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="API keys and credentials" icon="key" href="/configuration/api-keys">
+    How to obtain and add each credential last30days supports.
+  </Card>
+  <Card title="First-run setup wizard" icon="wand-magic-sparkles" href="/configuration/setup-wizard">
+    Automated setup that configures X and YouTube in 30 seconds.
+  </Card>
+</CardGroup>

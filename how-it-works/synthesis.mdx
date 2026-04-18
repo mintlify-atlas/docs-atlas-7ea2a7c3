@@ -1,0 +1,135 @@
+---
+title: "How last30days synthesizes research into a brief"
+description: "After gathering results from all sources, last30days synthesizes them into a grounded brief with citations, engagement stats, cluster merging, and Best Takes."
+---
+
+Gathering results from 13 sources is the easy part. The hard part is turning 80 scored items — Reddit threads, X posts, YouTube transcripts, TikTok captions, Polymarket odds — into something you can actually use. That is what the synthesis stage does. It is not "here's what I found." It is "here's what matters, and here's the evidence."
+
+## What makes it grounded
+
+The synthesis has one rule: every insight must be traceable to something specific. Not "people are talking about this" — but which people, on which platform, with how much engagement, saying what exactly.
+
+**Cited by source.** Every major claim in the brief references the source that produced it. Reddit threads are cited with their subreddit. X posts are cited with the handle. YouTube insights are attributed to the channel by name. The citation format is readable, not a footnote dump: "per @handle" or "per r/subreddit" inline with the prose.
+
+**Engagement-weighted.** The synthesis leads with what people actually engaged with, not what seems editorially important. A thread with 1,500 upvotes appears before a thread with 12 upvotes, even if the lower-engagement one seems more "relevant" by keyword matching.
+
+**Cross-source narrative.** When Reddit, X, and YouTube all discuss the same story, they get woven together. The synthesis does not give each source its own paragraph — it traces the story across platforms and uses each source as evidence. A Polymarket market at 86% becomes a data point inside a narrative, not a bullet in a separate "prediction markets" section.
+
+## Brief format
+
+Every research brief follows this structure:
+
+```markdown
+## Research Report: {TOPIC}
+Generated: {date} | Sources: Reddit, X, Bluesky, YouTube, TikTok, HN, Polymarket, Web
+
+### Key Findings
+[3-5 bullet points — the highest-signal insights with inline citations]
+
+### What I learned
+{Full synthesis with bold headline per paragraph}
+
+### Stats
+{Per-source counts, engagement totals, top voices}
+```
+
+The "What I learned" section leads each paragraph with a bolded headline. "BULLY dropped and it's dominating" not "Album release." "Europe is banning him one country at a time" not "Tour updates." The headlines are specific and newsy — they tell you what the paragraph is about before you read it.
+
+## Query-specific synthesis shapes
+
+The structure of the synthesis adapts to what you asked.
+
+<Tabs>
+  <Tab title="General / News">
+    A narrative with cross-source citations. Each paragraph covers one story or theme found in the research. Multi-source clusters — confirmed by three or more platforms — lead the brief. Single-source items appear later, with appropriate caveats.
+
+    The synthesis quotes directly from transcripts, comments, and posts. A 1,338-upvote Reddit comment gets quoted verbatim. A YouTube transcript excerpt gets attributed to the channel by name. The goal is to feel like someone who spent three hours reading everything, not a summary of summaries.
+  </Tab>
+  <Tab title="Recommendations">
+    A ranked list of specific things, not generic advice. When you ask "best X," you get a list of actual product names, tool names, or people — with mention counts, source attribution, and the specific handles or subreddits that recommended each one.
+
+    Bad synthesis for "best Claude Code skills": "Skills are powerful. Keep them under 500 lines."
+
+    Good synthesis: "/commit (5 mentions), remotion skill (4x), git-worktree (3x). The Remotion announcement got 16K likes on X."
+  </Tab>
+  <Tab title="Comparison (X vs Y)">
+    A side-by-side format covering both entities and the space between them. The synthesis includes a Quick Verdict up front, separate sections for each entity's community sentiment and strengths/weaknesses, a head-to-head narrative from content that directly compared them, and a comparison table.
+
+    ```markdown
+    ## Quick Verdict
+    [1-2 sentences: which one the community prefers and why, with source counts]
+
+    ## {TOPIC_A}
+    **Community Sentiment:** [Positive/Mixed/Negative] ({N} mentions)
+    **Strengths** / **Weaknesses**
+
+    ## {TOPIC_B}
+    **Community Sentiment:** [Positive/Mixed/Negative] ({N} mentions)
+    **Strengths** / **Weaknesses**
+
+    ## Head-to-Head
+    [Synthesis from content that directly compared the two]
+
+    | Dimension | {TOPIC_A} | {TOPIC_B} |
+    |---|---|---|
+
+    ## The Bottom Line
+    Choose {TOPIC_A} if... Choose {TOPIC_B} if...
+    ```
+  </Tab>
+  <Tab title="Prompting">
+    Techniques from the community plus a copy-paste prompt pack. The synthesis identifies the prompt formats and structures that people are actually using — JSON, structured params, natural language — and builds prompts in those formats using the patterns the research identified. The output is ready to paste, not a generic template.
+  </Tab>
+</Tabs>
+
+## Best Takes
+
+Every brief ends with the cleverest, most viral content from the research. The Best Takes section is the output of the second judge that scores every result for humor, wit, and virality alongside relevance.
+
+These are not edge cases or trivia — they are the posts that make you want to share the research. A Reddit comment with 1,200 upvotes that captures the entire debate in one sentence. An X post that went viral because it said the obvious thing nobody else said. They get quoted verbatim, attributed to the author and platform, and woven into the narrative where they fit naturally.
+
+<Note>
+  Best Takes is not a toggle. It runs on every research brief. The fun judge has been built into the pipeline since v3 and cannot be disabled — but its output can be tuned with `FUN_LEVEL=low` in your `.env` if you want the synthesis to focus on news over wit.
+</Note>
+
+## ELI5 mode
+
+Say `eli5 on` after any research run. The synthesis rewrites in plain language — no jargon, short sentences, one idea per sentence. Same data, same sources, same citations, same engagement numbers — just clearer.
+
+"Arizona's identity is paint scoring (50%+ shooting, 9th nationally) and rebounding behind Big 12 Player of the Year Jaden Bradley" becomes "Arizona wins by being physical — they score most of their points close to the basket and they're one of the best shooting teams in the country."
+
+Say `eli5 off` to revert to full detail mode. The setting applies to the current session.
+
+## Post-synthesis expertise
+
+After one research run, your session is an expert on the topic. You do not need to run new searches to ask follow-up questions — the pipeline already surfaced the relevant content, and the synthesis stage already internalized it.
+
+You can ask:
+- Follow-up questions about the biggest stories
+- What implications a development might have
+- How two sources are disagreeing and why
+- To draft an email, plan a trip, compare two options, or architect a system — all grounded in what the research found
+
+The invitation at the end of every brief includes 2-3 specific example questions based on what was actually in the research. They are not generic suggestions — they reference real things the pipeline found.
+
+## Stats block
+
+Every brief ends with a per-source stats tree showing exactly what was searched, what was found, and the engagement totals:
+
+```
+---
+✅ All agents reported back!
+├─ 🟠 Reddit: {N} threads │ {N} upvotes │ {N} comments
+├─ 🔵 X: {N} posts │ {N} likes │ {N} reposts
+├─ 🔴 YouTube: {N} videos │ {N} views │ {N} with transcripts
+├─ 🎵 TikTok: {N} videos │ {N} views │ {N} likes │ {N} with captions
+├─ 📸 Instagram: {N} reels │ {N} views │ {N} likes │ {N} with captions
+├─ 🟡 HN: {N} stories │ {N} points │ {N} comments
+├─ 📊 Polymarket: {N} markets │ Arizona 33%, Michigan 25%
+├─ 🌐 Web: {N} pages — Later, Buffer, CNN, SocialBee
+├─ 🗣️ Top voices: @handle1 ({N} likes), @handle2 │ r/sub1, r/sub2
+└─ 📎 Raw results saved to ~/Documents/Last30Days/{slug}-raw.md
+---
+```
+
+Sources with zero results are omitted entirely — no "0 threads" lines. The stats block shows only what was actually found.

@@ -1,0 +1,114 @@
+---
+title: "Research a person with last30days"
+description: "Use last30days to surface someone's last 30 days of activity across X, GitHub, Reddit, YouTube, and podcasts — before a meeting, call, or collaboration."
+---
+
+Before your next meeting, sales call, or interview, run `/last30days` on the person you're meeting with. You'll get their last 30 days of X posts, GitHub commits, podcast transcripts, and community discussion — the things LinkedIn will never show you.
+
+## What person research finds
+
+A Google search returns a LinkedIn profile from two years ago. last30days returns what the person is actually doing this month.
+
+Run `/last30days Peter Steinberger` before a meeting and you'd learn: he joined OpenAI to work on Codex, he's publicly fighting Anthropic's ban on third-party agents, he merged 23 PRs at an 85% merge rate across his GitHub repos, and he's building something called LobsterOS for cross-device agent control. You'd also see what r/ClaudeCode is saying about him: "Ever since OpenClaw released, it was widely known that if you run it through anything other than the API, you were gonna get banned eventually" — 227 upvotes. That's not on LinkedIn.
+
+<CardGroup cols={2}>
+  <Card title="X posts" icon="x-twitter">
+    Threads, takes, and announcements from the person's account and the people who cover them.
+  </Card>
+  <Card title="GitHub activity" icon="github">
+    PR velocity, merge rate, top repos by stars, and release notes for what shipped this month.
+  </Card>
+  <Card title="Reddit discussion" icon="reddit">
+    What the community is saying about them — not what they're saying about themselves.
+  </Card>
+  <Card title="YouTube transcripts" icon="youtube">
+    Full transcripts from interviews, talks, and podcast appearances searched for the 5 quotable sentences that matter.
+  </Card>
+</CardGroup>
+
+## How the engine resolves a person
+
+Before running a single search, last30days does pre-research to find exactly the right handles and communities to search. This is Step 0.5 in the skill — three focused lookups that map a person to their whole online footprint.
+
+<Steps>
+  <Step title="Find their primary X handle">
+    The engine runs a targeted search to find the person's verified X account:
+
+    ```
+    WebSearch("{person} X twitter handle site:x.com")
+    ```
+
+    It verifies the account is real (not a fan account or parody) by checking for official profile URLs and consistent naming.
+  </Step>
+  <Step title="Find company and related handles">
+    The mapping is bidirectional. If the topic is a person, the engine also resolves their company's X handle — because a CEO's story is inseparable from their company's story.
+
+    ```
+    WebSearch("{person} company CEO site:x.com")
+    ```
+
+    Examples: Sam Altman → `@OpenAI`, Dario Amodei → `@AnthropicAI`, Peter Steinberger → `@steipete` plus the OpenClaw handle.
+  </Step>
+  <Step title="Find their GitHub username">
+    For developers and technical founders, the engine resolves their GitHub username for person-mode search:
+
+    ```
+    WebSearch("{person} github profile site:github.com")
+    ```
+
+    It verifies the profile by checking that the description or pinned repos match the person you're researching.
+  </Step>
+  <Step title="Resolve relevant communities">
+    The engine finds 3–5 subreddits where this person is discussed, then uses them as targeted search inputs rather than broad keyword searches.
+  </Step>
+</Steps>
+
+## Person-mode GitHub
+
+When you add `--github-user`, the engine switches from keyword search to author-scoped queries. Instead of "who mentioned this person in an issue body," it answers: what are they shipping, and where is it landing?
+
+```bash
+python3 scripts/last30days.py "Peter Steinberger" --github-user=steipete
+```
+
+Person-mode GitHub surfaces:
+
+- **PR velocity** — how many PRs merged this month, and what merge rate
+- **Top repos** — star counts and README summaries for their own projects
+- **Release notes** — what actually shipped this month
+- **Top issues** — what users are requesting and complaining about
+
+The synthesizer weaves this data into the narrative alongside X posts and Reddit threads. The cross-source story becomes: "X is shipping Y (GitHub) while people on Z platform are saying W about it."
+
+<Note>
+  Person-mode GitHub is more useful than keyword search for developers and technical founders. For public figures without GitHub presence, skip the `--github-user` flag.
+</Note>
+
+## Example queries
+
+```bash
+/last30days Sam Altman
+/last30days Dario Amodei
+/last30days Peter Steinberger --github-user=steipete
+```
+
+<Tip>
+  The engine resolves bidirectionally — search a person and it finds their company; search a founder and it finds their product's handle. You get both sides of the story in one run.
+</Tip>
+
+## Tips for person research
+
+<AccordionGroup>
+  <Accordion title="For public figures: X and YouTube have the most signal">
+    Executives, founders, and public figures are most active on X and appear in YouTube interviews and podcasts. The engine prioritizes transcript extraction from talk and review content, not just music videos.
+  </Accordion>
+  <Accordion title="For developers: GitHub person-mode adds shipping cadence data">
+    A developer's GitHub tells you what they're actually building, not just what they're saying. PR velocity and merge rate give you a concrete picture of their output over the last 30 days.
+  </Accordion>
+  <Accordion title="If they're a founder, the engine finds their product too">
+    For founders, the engine resolves their personal X handle, their company's X handle, and their GitHub repo simultaneously — so you get the full picture of what they're building and what the community thinks of it.
+  </Accordion>
+  <Accordion title="Reddit discussion is often the most candid signal">
+    Community threads on Reddit discuss public figures in ways that X posts don't. A subreddit with 569 upvotes debating whether someone is a hero or "insufferable" tells you more about how the community perceives them than any profile they'd write themselves.
+  </Accordion>
+</AccordionGroup>

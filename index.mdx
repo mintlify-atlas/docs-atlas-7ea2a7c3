@@ -1,97 +1,82 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "last30days: Research across Reddit, X, YouTube, and more"
+description: "last30days is an AI agent skill that searches a dozen social platforms in parallel and synthesizes what people are actually saying about any topic right now."
 ---
 
-## Setting up
+last30days searches Reddit, X/Twitter, YouTube, TikTok, Hacker News, Polymarket, GitHub, and the web simultaneously — then ranks results by real engagement (upvotes, likes, real-money prediction odds) rather than editorial curation. One command surfaces what the internet actually thinks about any topic in the last 30 days.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run your first research query in under two minutes — zero config required.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Installation" icon="download" href="/installation">
+    Install on Claude Code, OpenClaw, Gemini CLI, or claude.ai web.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Configuration" icon="gear" href="/configuration/setup-wizard">
+    Unlock X, YouTube, TikTok, and more sources with the setup wizard.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli">
+    Full reference for every command, flag, and output mode.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What last30days does
 
-Everything you need to create world-class documentation.
+Reddit upvotes. X likes. YouTube transcripts. TikTok engagement. Polymarket odds backed by real money. last30days searches all of it in parallel, scores by what real people engage with, and synthesizes it into one brief.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={3}>
+  <Card title="13+ sources" icon="layer-group">
+    Reddit, X, YouTube, TikTok, Instagram, HN, Polymarket, GitHub, Bluesky, Threads, Pinterest, and web search — all in one run.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Zero config to start" icon="bolt">
+    Reddit, Hacker News, Polymarket, and GitHub work immediately with no API keys.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Engagement-ranked" icon="arrow-up">
+    A Reddit thread with 1,500 upvotes outranks a blog post nobody read. Ranked by what people actually engage with.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Get started
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Install the skill">
+    Install on your AI platform of choice. Claude Code is the fastest path:
+
+    ```bash
+    /plugin marketplace add mvanhorn/last30days-skill
+    ```
+  </Step>
+  <Step title="Run your first research query">
+    Type a topic — person, product, event, or "X vs Y" comparison:
+
+    ```
+    /last30days Sam Altman
+    /last30days Claude Code vs Codex
+    /last30days Universal Epic Universe
+    ```
+  </Step>
+  <Step title="Unlock more sources (optional)">
+    The first-run setup wizard takes 30 seconds and adds X/Twitter (via browser cookies) and YouTube (via yt-dlp). TikTok and Instagram are available with a free ScrapeCreators key.
+  </Step>
+</Steps>
+
+## Popular use cases
+
+<CardGroup cols={2}>
+  <Card title="Research people" icon="user" href="/guides/research-people">
+    Before a meeting: read someone's last 30 days of tweets, PRs, and podcast transcripts.
+  </Card>
+  <Card title="Compare tools" icon="code-compare" href="/guides/compare-products">
+    Side-by-side comparisons with live GitHub star counts and community sentiment.
+  </Card>
+  <Card title="Track current events" icon="newspaper" href="/guides/use-cases">
+    What's happening with Iran vs USA? What's the community saying about a product launch?
+  </Card>
+  <Card title="Embed in other skills" icon="puzzle-piece" href="/guides/embedding-in-skills">
+    Use last30days as a research context provider inside your own skills and agents.
+  </Card>
+</CardGroup>
+
+<Note>
+  last30days is MIT licensed, has no telemetry, and all research stays on your machine. 1,012 tests.
+</Note>

@@ -1,0 +1,80 @@
+---
+title: "How the last30days research pipeline works"
+description: "last30days runs a multi-stage pipeline: topic resolution, pre-research intelligence, parallel source search, cluster merging, scoring, and AI synthesis."
+---
+
+last30days is not a search engine — it's a research pipeline. When you type a topic, a sequence of coordinated stages fires before you see a single word of output. Each stage builds on the last, and the result is something no individual search can produce: a grounded brief that reflects what real people are actually saying, scored by engagement, and woven across every platform where they said it.
+
+Here is what happens from the moment you press enter.
+
+<Steps>
+  <Step title="You type a topic">
+    A topic can be anything: a person, a company, a product, a technology, a cultural moment, or a head-to-head like "X vs Y." The pipeline accepts natural language — you do not need to know subreddit names, X handles, or which API covers which platform. That resolution is the pipeline's job, not yours.
+  </Step>
+
+  <Step title="The agent resolves who matters">
+    Before a single API call fires, the pre-research intelligence stage figures out *where* to search. For a person, it resolves their X handle, their company's handle, their GitHub username, and the communities most likely to discuss them. For a product, it resolves the founder's personal account (often the highest-signal source), the GitHub repo for live star counts, and the relevant subreddits and TikTok hashtags.
+
+    This resolution is bidirectional. "Peter Steinberger" resolves `@steipete` on X and `steipete` on GitHub. "OpenClaw" resolves `@steipete` (the creator) plus `openclaw/openclaw` on GitHub. "Dave Morin" resolves `@davemorin` plus `@OpenClaw` plus the TWiST podcast. The engine understands your topic before searching — the old approach searched keywords and hoped for the best.
+
+    <Tip>
+      The pre-research stage also resolves communities: subreddits, TikTok hashtags, YouTube content queries, and Instagram creators — all before any source is queried. This is why v3 finds content that v2 never could.
+    </Tip>
+  </Step>
+
+  <Step title="All sources searched in parallel">
+    With handles, repos, subreddits, and hashtags resolved, the engine fires requests to every configured source simultaneously. Multi-query expansion means each source receives several targeted subqueries — not just your raw topic string.
+
+    Results are scored immediately as they arrive: by engagement (upvotes, likes, views), by relevance to your topic, and by freshness relative to the 30-day window. The three signals combine into a single score that determines what surfaces in your brief.
+  </Step>
+
+  <Step title="The depth nobody else has">
+    Most search tools return titles and links. last30days goes deeper:
+
+    - **YouTube:** Full transcripts are extracted with yt-dlp and scanned for the 5-10 quotable sentences that matter. You get the insight from a 45-minute deep dive without watching it.
+    - **Reddit:** Top comments are fetched alongside the thread — with upvote counts. The community verdict is right there.
+    - **TikTok:** Captions and hashtags surface creator takes and viral content that search engines index poorly or not at all.
+    - **Polymarket:** Real-money odds on outcomes, not pundit opinions. A market at 96% backed by $66K in volume tells you something a tweet cannot.
+    - **GitHub:** For people, PR velocity and merge rates. For projects, live star counts, latest release notes, and top issues — fetched from the API, not cited from a blog post written three months ago.
+  </Step>
+
+  <Step title="Same story, merged">
+    The Wireless Festival cancellation appeared on Reddit, was debated on X, and generated TikTok reaction content. Without cluster merging, you would see three separate items. With it, you see one cluster: one story, with all its evidence from every platform that discussed it.
+
+    v3 uses entity-based overlap detection to catch matches even when titles use different words. A Reddit thread titled "Wireless cancelled" and an X post saying "Wireless Festival is done" resolve to the same cluster. Multi-source clusters — items confirmed by three or more platforms — are treated as the highest-confidence signals in your brief.
+  </Step>
+
+  <Step title="Synthesized into one brief">
+    The judge agent reads the clustered, scored output and writes a brief grounded in specific data. Every insight is cited by source. Every engagement number is real. The synthesis is not "here's what I found" — it's "here's what matters, and here's the evidence."
+
+    The brief also includes a **Best Takes** section. A second judge scores every result for humor, wit, and virality alongside relevance. The cleverest one-liners from Reddit and X — the posts that make you want to share the research — appear at the end of every report.
+  </Step>
+
+  <Step title="Then it becomes your expert">
+    After one research run, your session knows everything the community knows about your topic. You can ask follow-up questions, request a draft email, plan a trip, compare options, or architect a system — all grounded in what is actually true right now, not what a model was trained to believe.
+
+    Say `eli5 on` at any point to rewrite the entire synthesis in plain language. Same data, same sources, same citations — just clearer. Say `eli5 off` to revert.
+  </Step>
+</Steps>
+
+## What v3 changed
+
+The core pipeline architecture above is v3. Here is what it replaced and improved.
+
+### Intelligent search
+
+The v2 engine searched keywords. The v3 engine runs a pre-research stage — built by [@j-sperling](https://github.com/j-sperling) — that resolves handles, subreddits, hashtags, and repos before the first API call. The difference shows in what gets found: v3 surfaces content about the right person, from the right communities, on the right platforms. v2 matched whoever happened to use your keyword.
+
+### Single-pass comparisons
+
+A topic like "CLI vs MCP" used to require three serial research passes — 12 minutes or more. v3 runs one pass with entity-aware subqueries that cover both sides simultaneously. Same depth, roughly 3 minutes.
+
+### Cross-source cluster merging
+
+When the same story appears on multiple platforms, v3 merges them into one cluster. Entity-based overlap detection catches matches even when the text differs. A Reddit thread, an X post, and a TikTok about the same event become one cluster with a combined evidence score — not three separate bullets in your brief.
+
+### GitHub person-mode vs project-mode
+
+When your topic is a person, GitHub switches from keyword search to author-scoped queries. Instead of "who mentioned this name in an issue," it answers: what are they shipping, where is it landing, and what does the community think of their projects? PR velocity, star counts, release notes, and top feature requests are all woven into the narrative.
+
+When your topic is a product or project, GitHub fetches live star counts, README summaries, latest releases, and top issues directly from the API — always more accurate than blog posts citing weeks-old numbers.

@@ -1,0 +1,171 @@
+---
+title: "Sources last30days searches and what each provides"
+description: "last30days searches 13 sources including Reddit, X, YouTube, TikTok, HN, Polymarket, and GitHub. Learn what each source contributes to the research brief."
+---
+
+No single AI has access to all of this. Google indexes editors. ChatGPT has a deal with Reddit but not X or TikTok. Gemini has YouTube but not Reddit. Claude has none of them natively. Each platform is a walled garden with its own API, its own tokens, its own auth. last30days bridges them by letting you bring your own keys and browser sessions — and then an agent searches all of them at once, scores them against each other, and synthesizes what actually matters.
+
+Here is what each source provides and what it takes to unlock it.
+
+## Always-on sources
+
+These four sources work with zero configuration. No API key, no CLI tool, no setup. They activate the moment you run `/last30days`.
+
+<CardGroup cols={2}>
+  <Card title="Reddit" icon="reddit">
+    Public JSON gives you threads and top comments with upvote counts. No API key. No ScrapeCreators. Just works.
+  </Card>
+  <Card title="Hacker News" icon="y-combinator">
+    Algolia's free HN Search API. Posts and top comments with point counts. Always active, zero config.
+  </Card>
+  <Card title="Polymarket" icon="chart-line">
+    Prediction market odds via the free Gamma API. Real-money probability percentages on outcomes.
+  </Card>
+  <Card title="GitHub" icon="github">
+    Issues, PRs, and discussions via the `gh` CLI. Installs free with `brew install gh`. No API key required.
+  </Card>
+</CardGroup>
+
+## Free with a browser or open-source tool
+
+<AccordionGroup>
+  <Accordion title="X / Twitter — browser cookies or xAI key">
+    **Signal:** Hot takes, expert threads, breaking reactions. X is where major topics surface first and where the sharpest opinions live.
+
+    **What's extracted:** Posts with like counts, repost counts, and view counts. The pipeline uses resolved handles from the pre-research stage — searching `@steipete` for Peter Steinberger, not just the keyword "Peter Steinberger."
+
+    **Setup options:**
+    - `FROM_BROWSER=auto` — Free. Reads your x.com login cookies at search time. Not saved to disk. Chrome on macOS prompts for Keychain access once.
+    - `XAI_API_KEY` — No browser access needed. Get a key at api.x.ai. Best for servers or automated pipelines.
+    - `AUTH_TOKEN` + `CT0` — Paste your X cookies manually from browser DevTools.
+
+    <Tip>
+      Browser cookies give you the same access as an API key — no signup, no cost. Just log into x.com in any browser and last30days finds your session automatically.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="YouTube — yt-dlp (free, open source)">
+    **Signal:** 45-minute deep dives, creator reviews, reaction videos, tutorials, and interviews. YouTube surfaces long-form content that social platforms cannot.
+
+    **What's extracted:** Full transcripts searched for the most quotable excerpts. View counts and like counts. The pipeline widens the candidate pool past music videos to reach talk, review, and tutorial content with captions.
+
+    **Setup:** `brew install yt-dlp` — open source, 190K+ GitHub stars, no API key required.
+
+    **Why it matters:** You can learn the key insight from a 45-minute deep dive without watching it. Transcript highlights are pre-extracted and quoted directly in the synthesis.
+  </Accordion>
+
+  <Accordion title="Bluesky — free app password">
+    **Signal:** AT Protocol posts from the post-X migration community. Early adopters, developers, and journalists who left X tend to be vocal here.
+
+    **What's extracted:** Posts from the Bluesky network with like and repost counts.
+
+    **Setup:** Add `BSKY_HANDLE=you.bsky.social` and `BSKY_APP_PASSWORD` to your `.env`. Generate an app password at bsky.app/settings/app-passwords.
+  </Accordion>
+</AccordionGroup>
+
+## ScrapeCreators sources
+
+These sources unlock with a single API key. ScrapeCreators offers 10,000 free calls with no credit card required.
+
+<Note>
+  last30days has no affiliation with ScrapeCreators — no referrals, no kickbacks. The free tier covers most research use cases.
+</Note>
+
+<Tabs>
+  <Tab title="TikTok">
+    **Signal:** Creator takes, viral content, and cultural moments. A TikTok with 3.6M views tells you more about what's culturally relevant than a press release.
+
+    **What's extracted:** Captions, hashtags, view counts, like counts, and share counts. The pipeline uses resolved hashtags and creator handles from the pre-research stage.
+
+    **Activate:** Set `SCRAPECREATORS_API_KEY` and add `tiktok` to `INCLUDE_SOURCES`.
+  </Tab>
+  <Tab title="Instagram Reels">
+    **Signal:** Influencer perspective and spoken-word content. Instagram captures the visual culture signal that other platforms miss.
+
+    **What's extracted:** Captions, optional transcripts, view counts, and like counts. Influencer and brand accounts are resolved in the pre-research stage.
+
+    **Activate:** Set `SCRAPECREATORS_API_KEY` and add `instagram` to `INCLUDE_SOURCES`.
+  </Tab>
+  <Tab title="Threads">
+    **Signal:** The post-X text layer. Conversations from creators and brands who have shifted their written takes to Threads.
+
+    **What's extracted:** Posts, like counts, and reply counts from creators and brands.
+
+    **Activate:** Set `SCRAPECREATORS_API_KEY` and add `threads` to `INCLUDE_SOURCES`.
+  </Tab>
+  <Tab title="Pinterest">
+    **Signal:** Visual discovery for products, ideas, and trends. Saves and comments surface what people are actually collecting and planning.
+
+    **What's extracted:** Pins, save counts, and comment text.
+
+    **Activate:** Set `SCRAPECREATORS_API_KEY` and add `pinterest` to `INCLUDE_SOURCES`.
+  </Tab>
+</Tabs>
+
+## Web and AI-grounded sources
+
+<AccordionGroup>
+  <Accordion title="Perplexity Sonar — OpenRouter key">
+    **Signal:** AI-synthesized web narratives with citations. Perplexity returns structured summaries with specific dates, names, and numbers that social sources often miss.
+
+    **What's extracted:** Grounded narratives with inline citations, covering editorial coverage and blog analysis that social platforms do not index well.
+
+    **Setup:** Add `OPENROUTER_API_KEY` to your `.env` and add `perplexity` to `INCLUDE_SOURCES`. Cost is approximately $0.02 per run. Use `--deep-research` for 50+ citation exhaustive reports (~$0.90/query).
+
+    <Note>
+      Perplexity Sonar is an additive source — it supplements Reddit, X, and YouTube rather than replacing them. It also powers the planning and reranking engine if you do not have a Gemini, OpenAI, or xAI key.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Web search — Brave, Exa, or Serper">
+    **Signal:** Editorial coverage, blog comparisons, and news articles. One signal among many — useful for facts that social platforms do not cover, like a product's pricing page or a policy announcement.
+
+    **What's extracted:** Article titles, excerpts, and publication names. The synthesis cites web sources by name (not raw URL) and weights them lower than social sources with engagement data.
+
+    **Setup options:**
+    - `BRAVE_API_KEY` — 2,000 free queries/month at brave.com/search/api
+    - `EXA_API_KEY` — semantic web search, 1,000 free/month at exa.ai
+    - `SERPER_API_KEY` — Google-based results
+
+    <Tip>
+      Web search is the source you use when Reddit, X, YouTube, TikTok, and HN do not cover a specific fact. The synthesis prioritizes social signal over editorial coverage wherever both exist.
+    </Tip>
+  </Accordion>
+</AccordionGroup>
+
+## Source reference table
+
+| Source | Signal | Setup | Data extracted |
+|---|---|---|---|
+| **Reddit** | Unfiltered community takes, upvote counts | None (free public JSON) | Threads + top comments with upvote counts |
+| **X / Twitter** | Hot takes, expert threads, breaking reactions | Browser cookies or xAI key | Posts, like counts, repost counts, view counts |
+| **YouTube** | 45-minute deep dives, transcripts | yt-dlp (free, open source) | Full transcripts, view counts, like counts |
+| **TikTok** | Creator takes, viral content | ScrapeCreators key | Captions, hashtags, view counts, like counts |
+| **Instagram Reels** | Influencer perspective, spoken-word transcripts | ScrapeCreators key | Captions, optional transcripts, view counts, like counts |
+| **Hacker News** | Developer consensus, technical debates | None (always on) | Posts + top comments with point counts |
+| **Polymarket** | Real-money odds (not opinions) | None (always on) | Probability percentages, market titles |
+| **GitHub** | PR velocity, star counts, release notes | gh CLI (free) | Person-mode: PR velocity, repos; Project-mode: stars, issues, releases |
+| **Threads** | Post-X text layer from creators and brands | ScrapeCreators key | Posts, like counts, reply counts |
+| **Pinterest** | Visual discovery, saves and comments | ScrapeCreators key | Pins, save counts, comments |
+| **Bluesky** | AT Protocol posts, post-X migration network | App password (free) | Posts from the Bluesky network |
+| **Perplexity Sonar** | Grounded web search with citations | OpenRouter key | AI-synthesized narratives with dates, names, and numbers |
+| **Web (Brave / Exa / Serper)** | Editorial coverage, blog comparisons | API key (free tier available) | Articles, blog posts, news excerpts |
+
+## Unlock progression
+
+You do not need API keys to get started. last30days is designed to deliver value immediately and unlock more sources as you add credentials.
+
+<Steps>
+  <Step title="Zero config (Reddit, HN, Polymarket, GitHub)">
+    Works immediately. Reddit threads and comments, Hacker News posts and comments, Polymarket markets, and GitHub (if the `gh` CLI is installed). Covers the core social signal for most topics.
+  </Step>
+  <Step title="Add X (browser cookies or xAI key)">
+    Log into x.com in any browser. last30days scans your cookies automatically — no signup, no cost. Or add `XAI_API_KEY` for server environments. This is the highest-value single unlock.
+  </Step>
+  <Step title="Add YouTube (yt-dlp)">
+    Run `brew install yt-dlp`. Enables full transcript extraction from reaction videos, reviews, tutorials, and interviews. Free and open source.
+  </Step>
+  <Step title="Add TikTok and Instagram (ScrapeCreators)">
+    Set `SCRAPECREATORS_API_KEY` and add `INCLUDE_SOURCES=tiktok,instagram`. 10,000 free calls, no credit card. Also activates a Reddit backup if public Reddit gets rate-limited.
+  </Step>
+</Steps>

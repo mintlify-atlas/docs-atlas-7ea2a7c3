@@ -1,0 +1,101 @@
+{
+  "projectType": "ai-ml",
+  "projectName": "last30days",
+  "projectDescription": "An AI agent skill that searches Reddit, X, YouTube, Hacker News, Polymarket, TikTok, and the web in parallel — then synthesizes what people are actually saying about any topic in the last 30 days.",
+  "theme": "luma",
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/setup-wizard",
+              "configuration/api-keys",
+              "configuration/sources"
+            ]
+          },
+          {
+            "group": "How It Works",
+            "pages": [
+              "how-it-works/pipeline",
+              "how-it-works/sources",
+              "how-it-works/scoring",
+              "how-it-works/synthesis"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/research-people",
+              "guides/compare-products",
+              "guides/use-cases",
+              "guides/embedding-in-skills"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "reference/cli",
+              "reference/flags",
+              "reference/output-modes"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "reference/query-plan",
+              "reference/agent-mode",
+              "reference/changelog"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-source parallel search across Reddit, X/Twitter, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, Bluesky, and the web",
+    "Engagement-scored ranking — upvotes, likes, and real-money Polymarket odds outrank editorial content",
+    "Intelligent pre-research: resolves X handles, subreddits, TikTok hashtags, and GitHub repos before searching",
+    "Cross-source cluster merging — same story from Reddit + X + YouTube becomes one entry, not three",
+    "Full YouTube transcripts and top Reddit comments with upvote counts",
+    "Zero-config quick start: Reddit, Hacker News, Polymarket, and GitHub work with no API keys",
+    "Person-mode and project-mode GitHub search (PR velocity, star counts, release notes)",
+    "ELI5 mode, Best Takes humor scoring, and comparison mode for X vs Y queries",
+    "Installable on Claude Code, OpenClaw (clawhub), Gemini CLI, and claude.ai web via .skill file",
+    "1,012 tests, MIT license, no telemetry"
+  ],
+  "publicApiSurface": [
+    "python3 scripts/last30days.py <topic> [--emit=compact|json|context|md]",
+    "--quick / --deep / --days=N (depth and lookback control)",
+    "--plan '<JSON>' (external query plan, skips internal LLM planner)",
+    "--x-handle=<handle> / --x-related=<handles> (targeted X search)",
+    "--subreddits=<r1,r2> (targeted Reddit communities)",
+    "--tiktok-hashtags=<tag1,tag2> / --tiktok-creators=<creator> (TikTok targeting)",
+    "--ig-creators=<handle> (Instagram targeting)",
+    "--github-user=<username> (person-mode GitHub) / --github-repo=<owner/repo> (project-mode)",
+    "--auto-resolve (engine-side handle/subreddit discovery for platforms without WebSearch)",
+    "--deep-research (Perplexity Sonar Pro 50+ citation report)",
+    "--store (persist findings to SQLite research store)",
+    "setup subcommand: python3 scripts/last30days.py setup [--openclaw|--github|--device-auth]",
+    "/plugin marketplace add mvanhorn/last30days-skill (Claude Code install)",
+    "clawhub install last30days-official (OpenClaw install)"
+  ]
+}

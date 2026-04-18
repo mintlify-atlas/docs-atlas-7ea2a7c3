@@ -1,0 +1,202 @@
+---
+title: "API keys and credentials for last30days"
+description: "Every credential last30days supports: X browser cookies, xAI, ScrapeCreators, OpenRouter, Brave, Exa, Serper, and Bluesky. Which are free and how to add each."
+---
+
+last30days works out of the box with no API keys at all — Reddit, Hacker News, Polymarket, and GitHub (if `gh` CLI is installed) require zero configuration. Most additional sources are also free; only a handful require paid credentials.
+
+## Credentials reference
+
+| Credential | Env var | What it unlocks | Cost |
+|---|---|---|---|
+| X browser cookies | `FROM_BROWSER=auto` | X/Twitter search | Free (reads x.com session) |
+| xAI API key | `XAI_API_KEY` | X/Twitter search (server-friendly) | Paid — api.x.ai |
+| X manual cookies | `AUTH_TOKEN` + `CT0` | X/Twitter search | Free (from browser DevTools) |
+| ScrapeCreators key | `SCRAPECREATORS_API_KEY` | TikTok, Instagram, Reddit backup | 10,000 free calls — scrapecreators.com |
+| OpenRouter key | `OPENROUTER_API_KEY` | Perplexity Sonar web search | ~$0.02/run |
+| Brave Search key | `BRAVE_API_KEY` | Web search | Free tier: 2,000 queries/month |
+| Exa key | `EXA_API_KEY` | Semantic web search | Free tier: 1,000 queries/month |
+| Serper key | `SERPER_API_KEY` | Google-based web search | Paid — serper.dev |
+| Parallel AI key | `PARALLEL_API_KEY` | Web search | parallel.ai |
+| Bluesky credentials | `BSKY_HANDLE` + `BSKY_APP_PASSWORD` | Bluesky posts | Free — bsky.app app passwords |
+| Truth Social token | `TRUTHSOCIAL_TOKEN` | Truth Social posts | Free |
+
+## How to add a key
+
+Always **append** keys to your config file. Never overwrite it.
+
+```bash
+mkdir -p ~/.config/last30days
+echo "XAI_API_KEY=your-key-here" >> ~/.config/last30days/.env
+```
+
+<Warning>
+Use `>>` (double redirect), not `>`. A single `>` overwrites the entire file and destroys any keys you already saved.
+</Warning>
+
+## X/Twitter authentication
+
+X/Twitter has three authentication methods. They are checked in priority order: browser cookies first, then xAI API key, then manual cookies.
+
+<Tabs>
+  <Tab title="FROM_BROWSER (easiest)">
+    Set `FROM_BROWSER=auto` to have last30days read your x.com session cookies directly from your browser at search time. No API key or signup required — just log into x.com in any browser.
+
+    ```bash
+    echo "FROM_BROWSER=auto" >> ~/.config/last30days/.env
+    ```
+
+    **Browser behavior:**
+
+    | Browser | Keychain prompt on macOS? |
+    |---|---|
+    | Chrome | Yes — prompted once per session |
+    | Firefox | No |
+    | Safari | No |
+
+    Cookies are read live. They are never written to disk by last30days.
+
+    <Tip>
+      This is the recommended method for local development. It costs nothing and requires no signup.
+    </Tip>
+  </Tab>
+
+  <Tab title="XAI_API_KEY (server-safe)">
+    Use an xAI API key if you cannot scan browser cookies — for example, on a server, in CI, or if you prefer not to grant cookie access.
+
+    1. Get a key at [api.x.ai](https://api.x.ai)
+    2. Add it to your config:
+
+    ```bash
+    echo "XAI_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+
+    This is the best option for persistent, browser-free X search.
+  </Tab>
+
+  <Tab title="AUTH_TOKEN + CT0 (manual)">
+    Paste your X session cookies manually if you prefer direct control.
+
+    **How to get your cookies:**
+
+    1. Open [x.com](https://x.com) and log in
+    2. Press **F12** to open DevTools
+    3. Go to **Application** → **Cookies** → `https://x.com`
+    4. Copy the value of `auth_token` and `ct0`
+
+    ```bash
+    echo "AUTH_TOKEN=your-auth-token" >> ~/.config/last30days/.env
+    echo "CT0=your-ct0-token" >> ~/.config/last30days/.env
+    ```
+
+    <Note>
+      Manual cookies expire when your X session expires. You will need to repeat this process when that happens.
+    </Note>
+  </Tab>
+</Tabs>
+
+## ScrapeCreators
+
+ScrapeCreators unlocks TikTok, Instagram, and a Reddit backup (used automatically if public Reddit is rate-limited). You get 10,000 free API calls with no credit card required.
+
+<Steps>
+  <Step title="Get your key">
+    Sign up at [scrapecreators.com](https://scrapecreators.com) or run the [first-run setup wizard](/configuration/setup-wizard), which can register via GitHub CLI in ~2 seconds.
+  </Step>
+
+  <Step title="Add the key">
+    ```bash
+    echo "SCRAPECREATORS_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+  </Step>
+
+  <Step title="Enable sources">
+    ScrapeCreators alone activates the Reddit backup. To also enable TikTok and Instagram, add `INCLUDE_SOURCES`:
+
+    ```bash
+    echo "INCLUDE_SOURCES=tiktok,instagram" >> ~/.config/last30days/.env
+    ```
+
+    See [Configure sources](/configuration/sources) for all available values.
+  </Step>
+</Steps>
+
+## Bluesky
+
+Bluesky requires an app password, not your account password. App passwords are scoped credentials you can revoke at any time.
+
+<Steps>
+  <Step title="Create an app password">
+    Go to **Settings → Privacy and Security → App Passwords** at [bsky.app](https://bsky.app/settings/app-passwords) and create a new password.
+  </Step>
+
+  <Step title="Add your credentials">
+    ```bash
+    echo "BSKY_HANDLE=you.bsky.social" >> ~/.config/last30days/.env
+    echo "BSKY_APP_PASSWORD=your-app-password" >> ~/.config/last30days/.env
+    ```
+  </Step>
+</Steps>
+
+## Web search backends
+
+last30days supports three web search backends. Only one is needed.
+
+<AccordionGroup>
+  <Accordion title="Brave Search (recommended free option)">
+    2,000 free queries per month. Get a key at [brave.com/search/api](https://brave.com/search/api).
+
+    ```bash
+    echo "BRAVE_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+  </Accordion>
+
+  <Accordion title="Exa (semantic search)">
+    1,000 free queries per month with semantic ranking. Get a key at [exa.ai](https://exa.ai).
+
+    ```bash
+    echo "EXA_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+  </Accordion>
+
+  <Accordion title="OpenRouter (Perplexity Sonar)">
+    Enables Perplexity Sonar as an AI-synthesized research source alongside Reddit, X, and YouTube. Costs ~$0.02/run, or ~$0.90/query in `--deep-research` mode for 50+ citation reports.
+
+    ```bash
+    echo "OPENROUTER_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+
+    After adding the key, opt in via `INCLUDE_SOURCES`:
+
+    ```bash
+    echo "INCLUDE_SOURCES=perplexity" >> ~/.config/last30days/.env
+    ```
+  </Accordion>
+
+  <Accordion title="Serper (Google-based web search)">
+    Serper provides Google-indexed results as the web search backend. Set via `--web-backend=serper` or auto-detected when `SERPER_API_KEY` is present.
+
+    ```bash
+    echo "SERPER_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+  </Accordion>
+
+  <Accordion title="Parallel AI (web search)">
+    Parallel AI is an additional web search backend. Detected automatically when `PARALLEL_API_KEY` is present. Get a key at parallel.ai.
+
+    ```bash
+    echo "PARALLEL_API_KEY=your-key-here" >> ~/.config/last30days/.env
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="First-run setup wizard" icon="wand-magic-sparkles" href="/configuration/setup-wizard">
+    Automated setup that configures X and YouTube in 30 seconds.
+  </Card>
+  <Card title="Configure sources" icon="sliders" href="/configuration/sources">
+    Control which platforms last30days searches on every run.
+  </Card>
+</CardGroup>

@@ -1,0 +1,227 @@
+---
+title: "last30days query plan — custom research planning"
+description: "Use --plan to bypass the last30days internal planner with a custom JSON plan. Set intent, freshness, cluster mode, and per-source subquery weights."
+---
+
+By default, last30days uses an internal LLM to decide which subqueries to run across which sources. Passing `--plan` lets you supply your own JSON plan instead, giving you precise control over every dimension of the search — from intent type and freshness filtering to per-source targeting and relative weights. This is especially useful in agent pipelines, comparison runs, or any situation where you know the topic well enough to outplan the automatic planner.
+
+## What a query plan controls
+
+A query plan is a JSON object with four top-level keys and a list of subqueries. Each part of the plan maps directly to an engine behavior:
+
+- **`intent`** — tells the engine what kind of research this is, which in turn sets scoring priorities
+- **`freshness_mode`** — controls how strictly results are filtered by date
+- **`cluster_mode`** — determines how results are grouped in the output
+- **`subqueries`** — the actual searches to run, each targeting specific platforms at a specific weight
+
+When you pass `--plan`, the Python script skips its internal planner entirely and executes your plan as-is. This means you get faster startup and deterministic behavior across repeated runs on the same topic.
+
+## Schema
+
+```json
+{
+  "intent": "breaking_news",
+  "freshness_mode": "strict_recent",
+  "cluster_mode": "story",
+  "subqueries": [
+    {
+      "label": "primary",
+      "search_query": "kanye west",
+      "ranking_query": "What notable events involving Kanye West happened in the last 30 days?",
+      "sources": ["reddit", "x", "hackernews", "youtube", "tiktok", "instagram"],
+      "weight": 1.0
+    },
+    {
+      "label": "album",
+      "search_query": "kanye west bully album",
+      "ranking_query": "How was Kanye West's BULLY album received?",
+      "sources": ["youtube", "reddit", "tiktok", "instagram"],
+      "weight": 0.8
+    }
+  ]
+}
+```
+
+## Top-level fields
+
+<ParamField body="intent" type="string" required>
+  Research intent type. Drives freshness and cluster defaults when not explicitly overridden.
+
+  | Value | Description |
+  |---|---|
+  | `breaking_news` | Time-sensitive stories; prioritizes recency |
+  | `prediction` | Forecasts and bets; surfaces Polymarket markets |
+  | `concept` | Explanatory or educational topics |
+  | `how_to` | Step-by-step guidance; routes to YouTube and Reddit guides |
+  | `comparison` | Side-by-side evaluation of two or more things |
+  | `opinion` | Community sentiment and debate |
+  | `factual` | Verifiable claims and data points |
+  | `product` | Reviews, demos, and user reactions to a product |
+</ParamField>
+
+<ParamField body="freshness_mode" type="string" required>
+  How strictly to filter results by recency.
+
+  | Value | Behavior |
+  |---|---|
+  | `strict_recent` | Only results from the last 30 days |
+  | `balanced_recent` | Prefer recent, allow older content when highly relevant |
+  | `evergreen_ok` | Allow timeless content alongside recent results |
+</ParamField>
+
+<ParamField body="cluster_mode" type="string" required>
+  How to group results in the output.
+
+  | Value | Groups results by |
+  |---|---|
+  | `story` | Narrative event or timeline |
+  | `debate` | Opinion or position |
+  | `market` | Prediction or probability |
+  | `workflow` | Procedural step |
+  | `none` | No clustering; flat ranked list |
+</ParamField>
+
+<ParamField body="subqueries" type="array" required>
+  Between 1 and 4 subqueries. Use more subqueries for multi-faceted topics (comparisons, artist + album + reactions) and fewer for simple or narrow topics.
+</ParamField>
+
+## Per-subquery fields
+
+<ParamField body="label" type="string" required>
+  A short identifier for this subquery used in debug output and raw result files. Use descriptive names like `primary`, `album`, `reactions`, or `entity-a`.
+</ParamField>
+
+<ParamField body="search_query" type="string" required>
+  The keyword-heavy query used to retrieve candidates from each source. Write it the way content on that platform would be **titled** — not as a natural language question, and not with temporal framing.
+
+  <Warning>
+    Never include temporal phrases (`recent`, `last 30 days`, month names, year numbers) or meta-research phrases (`news`, `updates`, `public appearances`). These patterns match noise, not the content you want.
+  </Warning>
+
+  For disambiguation, add a qualifying term when the topic name has multiple meanings:
+
+  ```
+  "tella screen recording"    ✓   (not "tella" — which also matches a soccer player)
+  "loom video messaging"      ✓   (not "loom" — which also matches a weaving tool)
+  ```
+</ParamField>
+
+<ParamField body="ranking_query" type="string" required>
+  A natural language question used to score candidate results for relevance. This is separate from `search_query` — it does not affect retrieval, only ranking.
+
+  ```
+  "What notable events involving Kanye West happened in the last 30 days?"
+  "How was Kanye West's BULLY album received by critics and fans?"
+  ```
+</ParamField>
+
+<ParamField body="sources" type="array" required>
+  Platforms to search for this subquery. Valid values:
+
+  ```
+  reddit, x, youtube, tiktok, instagram, hackernews, polymarket,
+  bluesky, truthsocial, threads, pinterest, grounding
+  ```
+
+  `grounding` (web search) requires a Brave, Exa, or Serper key to be configured.
+</ParamField>
+
+<ParamField body="weight" type="number" required>
+  Relative importance of this subquery's results in the final ranked output.
+
+  | Weight range | Role |
+  |---|---|
+  | `1.0` | Primary subquery |
+  | `0.6–0.8` | Secondary — important angle, narrower scope |
+  | `0.3–0.5` | Peripheral — context or related-entity coverage |
+</ParamField>
+
+## Intent → defaults mapping
+
+The `intent` field sets sensible defaults for `freshness_mode` and `cluster_mode`. You can override either independently.
+
+| Intent | Default freshness_mode | Default cluster_mode |
+|---|---|---|
+| `breaking_news` | `strict_recent` | `story` |
+| `prediction` | `strict_recent` | `market` |
+| `comparison` | `balanced_recent` | `debate` |
+| `opinion` | `balanced_recent` | `debate` |
+| `how_to` | `evergreen_ok` | `workflow` |
+| `concept` | `balanced_recent` | `none` |
+| `factual` | `balanced_recent` | `none` |
+| `product` | `balanced_recent` | `none` |
+
+## Rules for well-formed plans
+
+<Steps>
+  <Step title="Primary subquery must include all major sources">
+    Your first subquery (weight `1.0`) must list `reddit`, `x`, `youtube`, `tiktok`, `instagram`, `hackernews`, and `polymarket`. Never omit Reddit (highest-signal discussion) or YouTube (transcripts, official content). Secondary and peripheral subqueries can be narrower.
+  </Step>
+  <Step title="Keep search_query concise and keyword-heavy">
+    Match how content is titled on platforms, not how a person would phrase a question. Omit filler words. Preserve exact proper nouns and entity strings.
+  </Step>
+  <Step title="Disambiguate ambiguous names">
+    If your topic name is also a common word or matches a different well-known entity, append a qualifying category term: `"tella screen recording"`, `"loom video messaging"`, `"arc browser"`.
+  </Step>
+  <Step title="Use per-entity subqueries for comparisons">
+    For `X vs Y` queries, create one head-to-head subquery at weight `1.0` plus per-entity subqueries at weight `0.8`. All subqueries should include the product category in `search_query` to prevent cross-contamination: `"tella screen recorder review"`, `"loom video tool pricing"`.
+  </Step>
+  <Step title="Route by platform strengths">
+    For predictions: include `polymarket`. For how-to: prioritize `youtube` and `reddit`. For products: include `youtube` (reviews), `reddit` (discussions), and `tiktok` (demos). At least one subquery should include YouTube-specific terms when doing comparison runs.
+  </Step>
+</Steps>
+
+## Passing via CLI
+
+<Tabs>
+  <Tab title="Inline JSON string">
+    ```bash
+    python3 scripts/last30days.py "kanye west" \
+      --plan '{"intent":"breaking_news","freshness_mode":"strict_recent","cluster_mode":"story","subqueries":[{"label":"primary","search_query":"kanye west","ranking_query":"What notable events involving Kanye West happened recently?","sources":["reddit","x","hackernews","youtube","tiktok","instagram"],"weight":1.0}]}'
+    ```
+  </Tab>
+  <Tab title="File path">
+    ```bash
+    python3 scripts/last30days.py "kanye west" --plan /path/to/plan.json
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  When you pass `--plan`, the script skips its internal LLM planner entirely. The plan you provide is executed as-is with no modification.
+</Note>
+
+## Full comparison example
+
+This plan covers a `tella vs loom` comparison with a head-to-head subquery and per-entity subqueries:
+
+```json
+{
+  "intent": "comparison",
+  "freshness_mode": "balanced_recent",
+  "cluster_mode": "debate",
+  "subqueries": [
+    {
+      "label": "head-to-head",
+      "search_query": "tella vs loom screen recorder",
+      "ranking_query": "How do people compare Tella and Loom as screen recording tools?",
+      "sources": ["reddit", "x", "youtube", "tiktok", "instagram", "hackernews", "polymarket"],
+      "weight": 1.0
+    },
+    {
+      "label": "tella",
+      "search_query": "tella screen recorder review",
+      "ranking_query": "What do users say about Tella screen recorder?",
+      "sources": ["reddit", "x", "youtube", "tiktok"],
+      "weight": 0.8
+    },
+    {
+      "label": "loom",
+      "search_query": "loom video messaging review",
+      "ranking_query": "What do users say about Loom video messaging?",
+      "sources": ["reddit", "x", "youtube", "tiktok"],
+      "weight": 0.8
+    }
+  ]
+}
+```

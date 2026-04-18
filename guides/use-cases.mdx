@@ -1,0 +1,128 @@
+---
+title: "What to research with last30days"
+description: "Real-world use cases for last30days: pre-meeting research, tracking current events, understanding product feedback, trip planning, and learning fast."
+---
+
+last30days works for any topic where you want to know what people are actually saying right now — not what editors decided to publish. Below are the most common use cases, with real examples of what the engine surfaces.
+
+<AccordionGroup>
+  <Accordion title="Before a meeting">
+    **Query:** `/last30days Peter Steinberger`
+
+    You have a meeting tomorrow. You Google them. You get their LinkedIn from 2023.
+
+    last30days gives you what they're actually doing this month: joined OpenAI's Codex team, fighting Anthropic's ban on third-party agents, 23 PRs merged at 85% merge rate on GitHub, building LobsterOS for cross-device agent control. And then there's r/ClaudeCode with a 227-upvote thread: "Ever since OpenClaw released, it was widely known that if you run it through anything other than the API, you were gonna get banned eventually." That's not on LinkedIn.
+
+    Add `--github-user=steipete` and you also get PR velocity, top repos with star counts, and release notes for what shipped this month.
+
+    **Other meeting research queries:**
+    ```bash
+    /last30days Sam Altman
+    /last30days Dario Amodei
+    /last30days {company name} before a sales call
+    ```
+  </Accordion>
+
+  <Accordion title="When something drops">
+    **Query:** `/last30days Kanye West`
+
+    UK blocked his visa. Wireless Festival canceled. Sponsors fled. But BULLY debuted #2 on Billboard. Fantano came back from his "Yay sabbatical" to review it — 653K views. SoFi Homecoming brought out Lauryn Hill and Travis Scott for 44 songs. Polymarket: "Will Kanye tweet again?" 86% Yes.
+
+    That's 23 Reddit threads, 17 YouTube videos, and 86K upvotes synthesized into one brief. The engine finds the Billboard chart position, the Fantano review, the tour setlist, and the prediction market odds — all from what people are actually engaging with, not a press release.
+
+    **Other "something dropped" queries:**
+    ```bash
+    /last30days {album name}
+    /last30days {product launch name}
+    /last30days {company} funding announcement
+    ```
+  </Accordion>
+
+  <Accordion title="To compare tools">
+    **Query:** `/last30days OpenClaw vs Hermes vs Paperclip`
+
+    "These aren't competitors, they're layers." OpenClaw is the executor (351K GitHub stars, live from the API). Hermes is the self-improving brain (31K stars). Paperclip is the org chart (49K stars). Per @IMJustinBrooke: "OpenClaw = Charmander, Hermes = Charizard."
+
+    Star counts are pulled live from the GitHub API — not from a blog post citing months-old numbers. The output includes a side-by-side table with architecture, memory, security, and best-for, plus community sentiment from each side's Reddit and X discussion.
+
+    **Other comparison queries:**
+    ```bash
+    /last30days Claude Code vs Codex
+    /last30days React vs Vue
+    /last30days CLI vs MCP for AI agents
+    ```
+  </Accordion>
+
+  <Accordion title="To understand the world">
+    **Query:** `/last30days Iran vs USA`
+
+    Day 38 of the war. Trump's Tuesday deadline for Iran to reopen the Strait of Hormuz. Two US warplanes downed. Oil at $126/barrel. The IEA called it "the largest supply disruption in the history of the global oil market." Polymarket: ceasefire by Dec 31 at 74%.
+
+    That's 27 X posts, 10 YouTube videos, and 20 prediction markets synthesized into a brief that includes specific odds backed by real money — not pundit guesses.
+
+    **Other world events queries:**
+    ```bash
+    /last30days {country} election
+    /last30days {conflict or geopolitical event}
+    /last30days {market or economic event}
+    ```
+  </Accordion>
+
+  <Accordion title="Before a trip">
+    **Query:** `/last30days Universal Epic Universe`
+
+    Expansion already under construction. "Project 680" permit filed. Fireworks show confirmed by infrastructure but unannounced. Wait times: Mine-Cart Madness averaging 148 minutes. No annual pass yet, and locals are frustrated. Stardust Racers down for refurbishment through April 5.
+
+    This is the kind of information that lives in enthusiast communities, not official websites. last30days finds it because Reddit and X are where park visitors actually report what's happening.
+
+    **Other trip planning queries:**
+    ```bash
+    /last30days Disney World Genie+ tips
+    /last30days {destination} travel tips {current month}
+    /last30days {airline or hotel} complaints
+    ```
+  </Accordion>
+
+  <Accordion title="To learn something fast">
+    **Query:** `/last30days Nano Banana Pro prompting`
+
+    JSON-structured prompts are replacing tag soup. @pictsbyai's nested format prevents "concept bleeding." Edit-first workflow beats regeneration for fine details. Then last30days writes you a production prompt using exactly what the community said works.
+
+    This use case has a special property: after the research run, the AI session is an expert on the topic. You can ask follow-up questions, request variations, or have it write prompts that apply what the community actually recommends — not generic advice.
+
+    **Other "learn fast" queries:**
+    ```bash
+    /last30days {tool} prompting techniques
+    /last30days best {tool} workflows
+    /last30days {skill} tips community
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Source coverage by use case
+
+Different topics have different signal distribution across platforms. Here's where the strongest signal typically lives:
+
+| Use case | Strongest sources |
+|---|---|
+| Person / meeting prep | X posts, GitHub (person-mode), YouTube transcripts |
+| Music / entertainment | Reddit, YouTube reviews, TikTok, Polymarket |
+| Tech product comparison | Reddit, GitHub (live stars), X, HN |
+| Current events / geopolitics | X, YouTube, Polymarket odds |
+| Trip planning | Reddit, YouTube |
+| Prompting techniques | Reddit, X, YouTube tutorials |
+
+<Tip>
+  After any research run, the AI session has absorbed everything the engine surfaced. You can ask follow-up questions, request deeper dives, or have it write prompts and emails grounded in what's actually happening — without running another search.
+</Tip>
+
+## Zero-config sources
+
+Some sources work immediately with no setup. You can run any of the use cases above and get results from:
+
+- **Reddit** — threads and top comments with upvote counts via public JSON
+- **Hacker News** — stories and comments via the Algolia API
+- **Polymarket** — prediction market odds via the Gamma API
+- **GitHub** — live star counts and issue data (enhanced if you have the `gh` CLI installed)
+
+X/Twitter, YouTube, TikTok, and Instagram require a one-time setup that takes about 30 seconds. Run `/last30days` once and the setup wizard walks you through it.

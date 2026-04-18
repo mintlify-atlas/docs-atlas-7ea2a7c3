@@ -1,0 +1,140 @@
+---
+title: "Embed last30days in other AI skills and agents"
+description: "Use last30days as a research context provider inside your own Claude skills, agent pipelines, and automation workflows using its emit modes and CLI interface."
+---
+
+last30days is designed to work as a standalone research tool and as a context provider inside other skills and agents. You can inject its output directly into a skill's prompt, read it from a saved file, get a path for dynamic loading, or consume it as structured JSON for programmatic use.
+
+## Four embedding methods
+
+<Tabs>
+  <Tab title="Inline context injection">
+    Embed a live research call directly in a skill's `SKILL.md` or agent prompt. The `--emit=context` mode outputs a compact research snippet optimized for injection into another prompt:
+
+    ```markdown
+    ## Recent Research Context
+    !python3 ~/.claude/skills/last30days/scripts/last30days.py "your topic" --emit=context
+    ```
+
+    The `!` prefix causes the agent runtime to execute the command and substitute the output inline before the skill prompt is processed.
+  </Tab>
+  <Tab title="Read from saved file">
+    Run last30days separately, then reference the saved context file from your skill:
+
+    ```markdown
+    ## Research Context
+    !cat ~/.local/share/last30days/out/last30days.context.md
+    ```
+
+    Useful when you want to pre-run research before a session and reuse the same context across multiple skill invocations without re-fetching.
+  </Tab>
+  <Tab title="Saved file path">
+    Use `--save-dir` to write output to a known path, then load it in a downstream step:
+
+    ```bash
+    python3 ~/.claude/skills/last30days/scripts/last30days.py "topic" \
+      --emit=context \
+      --save-dir=~/tmp/research
+
+    # Load the saved context file from its predictable path
+    cat ~/tmp/research/topic-raw.md
+    ```
+
+    The filename is derived from the topic slug. For `"Sam Altman"`, the saved file will be `sam-altman-raw.md` (or `sam-altman-raw-v3.md` if you add `--save-suffix=v3`).
+  </Tab>
+  <Tab title="JSON for programmatic use">
+    Get normalized research data with scores as structured JSON:
+
+    ```bash
+    python3 ~/.claude/skills/last30days/scripts/last30days.py "topic" --emit=json > research.json
+    ```
+
+    The JSON output contains the full normalized schema with engagement scores, source labels, dates, and URLs — suitable for downstream processing, filtering, or feeding into another model.
+  </Tab>
+</Tabs>
+
+## Agent mode
+
+The `--agent` flag is designed for non-interactive pipelines. It skips all setup prompts, topic pickers, and follow-up invitations, outputs a complete research report, and stops.
+
+```bash
+python3 scripts/last30days.py "plaud granola" --agent --emit=compact
+```
+
+<CardGroup cols={2}>
+  <Card title="No interactive prompts" icon="terminal">
+    Skips the setup wizard, topic picker, and follow-up invitation. Runs start to finish without waiting for user input.
+  </Card>
+  <Card title="Structured report output" icon="file-lines">
+    Outputs a complete research report with key findings, full synthesis, and stats — then stops.
+  </Card>
+  <Card title="Auto-saves raw data" icon="floppy-disk">
+    Saves raw research data to `~/Documents/Last30Days/` automatically via `--save-dir`. No extra tool calls needed.
+  </Card>
+  <Card title="Composable" icon="puzzle-piece">
+    Combine with `--emit=compact`, `--emit=json`, or `--emit=path` to control how the output is consumed downstream.
+  </Card>
+</CardGroup>
+
+The agent mode report format is:
+
+```text
+## Research Report: {TOPIC}
+Generated: {date} | Sources: Reddit, X, Bluesky, YouTube, TikTok, HN, Polymarket, Web
+
+### Key findings
+[3-5 bullet points, highest-signal insights with citations]
+
+### What I learned
+{Full synthesis from normal output}
+
+### Stats
+{Standard stats block}
+```
+
+## The `--store` flag
+
+The `--store` flag persists ranked findings to a local SQLite database. This is useful for watchlist and briefing workflows where you want to track a topic over time and query the accumulated findings later.
+
+```bash
+python3 scripts/last30days.py "your topic" --store
+```
+
+Each run appends to the database. You can query the SQLite file directly or build tooling on top of it to generate weekly briefings, detect trend changes, or compare sentiment across time periods.
+
+<Note>
+  The SQLite database is stored locally on your machine. last30days has no telemetry and sends no data to external servers beyond the configured API providers.
+</Note>
+
+## Output files
+
+All outputs are written to `~/.local/share/last30days/out/` by default. Use `--save-dir` to write to a different path.
+
+| File | Contents |
+|---|---|
+| `{slug}-raw-{suffix}.md` | Full debug artifact with all sources — Python engine data plus WebSearch supplemental results appended |
+| `{slug}-raw-{suffix}.json` | Normalized data with engagement scores, source labels, and metadata |
+| `last30days.context.md` | Compact reusable snippet optimized for injection into other skills |
+
+<Tip>
+  Use `--save-suffix` to namespace output files by run type. For example, `--save-suffix=v3` produces `{slug}-raw-v3.md` and `{slug}-raw-v3.json`, making it easy to keep multiple runs for the same topic without overwriting.
+</Tip>
+
+## Example: research-aware skill
+
+Here's how you'd use last30days as a context provider inside another skill that generates content briefs:
+
+```markdown
+## Content Brief Skill
+
+### Research context (last 30 days)
+!python3 ~/.claude/skills/last30days/scripts/last30days.py "{TOPIC}" --agent --emit=context
+
+### Instructions
+Using the research context above, write a content brief for {TOPIC} that covers:
+- The top 3 community-validated angles
+- Specific quotes and data points from the research
+- The format the community responds to best
+```
+
+The skill injects fresh research automatically on each invocation. The `--agent` flag ensures the research runs silently without interactive prompts, and `--emit=context` produces a compact output that fits cleanly into the skill's token budget.

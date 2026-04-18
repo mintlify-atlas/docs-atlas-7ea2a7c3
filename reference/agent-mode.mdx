@@ -1,0 +1,126 @@
+---
+title: "last30days agent mode for non-interactive pipelines"
+description: "Run last30days in agent mode with --agent to skip interactive prompts and output a structured research report for use in automated pipelines and other skills."
+---
+
+Agent mode runs last30days non-interactively: no intro messages, no `AskUserQuestion` calls, no pause waiting for user input. The skill runs research exactly as normal, then outputs a complete structured report and stops. This makes it suitable for automation pipelines, scheduled research runs, skill-to-skill embedding, and any situation where you need last30days to execute silently and produce machine-readable output.
+
+## What --agent skips
+
+Passing `--agent` suppresses every interactive touchpoint in the normal flow:
+
+<CardGroup cols={2}>
+  <Card title="Intro display block" icon="message-slash">
+    The "I'll research X across Reddit..." confirmation message is skipped. The pipeline starts immediately.
+  </Card>
+  <Card title="AskUserQuestion calls" icon="circle-question">
+    All prompts are suppressed. If `TARGET_TOOL` is not specified, it defaults to `"unknown"` automatically.
+  </Card>
+  <Card title="WAIT FOR USER RESPONSE" icon="hourglass">
+    The pause at the end of the synthesis — where the skill waits for a follow-up question — is skipped.
+  </Card>
+  <Card title="Follow-up invitation" icon="hand">
+    The "I'm now an expert on X..." closing invitation is omitted from the output.
+  </Card>
+</CardGroup>
+
+## What --agent does
+
+Everything else runs normally:
+
+- The research script and WebSearch run with the same source coverage, scoring, and synthesis as a standard run
+- Raw research data is automatically saved to `~/Documents/Last30Days/` via `--save-dir` — no extra flags needed
+- The complete research report is output and the skill stops
+
+## Output format
+
+Agent mode produces a structured markdown report:
+
+```markdown
+## Research Report: {TOPIC}
+Generated: {date} | Sources: Reddit, X, Bluesky, YouTube, TikTok, HN, Polymarket, Web
+
+### Key Findings
+[3-5 bullet points, highest-signal insights with citations]
+
+### What I learned
+{The full "What I learned" synthesis from normal output}
+
+### Stats
+{The standard stats block}
+```
+
+The `Key Findings` section distills the most important signals into 3-5 bullets with source citations, making it easy to consume the output programmatically or pass it to a downstream agent as context.
+
+## Usage examples
+
+<Steps>
+  <Step title="Basic agent mode">
+    Run agent mode with a slash command topic:
+
+    ```bash
+    /last30days plaud granola --agent
+    ```
+  </Step>
+  <Step title="With handle targeting and compact emit">
+    Combine agent mode with X handle targeting and compact output:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" \
+      --agent \
+      --x-handle=sama \
+      --emit=compact
+    ```
+  </Step>
+  <Step title="Save to a custom directory">
+    Override the default save path:
+
+    ```bash
+    python3 scripts/last30days.py "topic" \
+      --agent \
+      --save-dir=~/research
+    ```
+  </Step>
+  <Step title="Persist to the research store">
+    Use `--store` alongside `--agent` to accumulate ranked findings in the local SQLite database for watchlists and briefing workflows:
+
+    ```bash
+    python3 scripts/last30days.py "topic" \
+      --agent \
+      --store
+    ```
+  </Step>
+</Steps>
+
+## Embedding in a skill or script
+
+Capture the output of agent mode into a variable and use it as context in a downstream step:
+
+```bash
+RESULT=$(python3 ~/.claude/skills/last30days/scripts/last30days.py "topic" \
+  --agent \
+  --emit=compact)
+
+echo "$RESULT"
+```
+
+This pattern lets you use last30days as a research module inside a larger skill or automation. The `--emit=compact` flag keeps the output concise for context window efficiency.
+
+<Tip>
+  Pair `--agent` with `--plan` to pass a pre-built query plan and get fully deterministic, reproducible research runs — no LLM planner invocation, no interactive prompts.
+</Tip>
+
+## Building watchlists
+
+The `--store` flag persists ranked findings to a local SQLite database. Combined with `--agent`, you can schedule last30days runs and accumulate findings over time:
+
+```bash
+# Run nightly via cron
+python3 scripts/last30days.py "topic" --agent --store --save-dir=~/research
+```
+
+Stored findings support full-text search (FTS5) and can be queried directly or surfaced by a briefing skill that reads the SQLite database.
+
+<Note>
+  Agent mode saves raw research data automatically via `--save-dir`. You do not need to add `--save-dir` explicitly unless you want a non-default location — the script sets `~/Documents/Last30Days/` as the default when `--agent` is passed.
+</Note>

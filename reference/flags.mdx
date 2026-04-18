@@ -1,0 +1,247 @@
+---
+title: "last30days CLI flags and options reference"
+description: "All CLI flags for the last30days command: topic targeting, depth control, source selection, output modes, query planning, and GitHub/social targeting."
+---
+
+Every flag accepted by `python3 scripts/last30days.py` is listed below, extracted from the `build_parser()` function in `scripts/last30days.py`. Flags are grouped by function for easier scanning.
+
+## Positional argument
+
+<ParamField path="topic" type="string">
+  The research topic. One or more words joined with spaces. Required for research runs; omit only when running `setup`.
+
+  ```bash
+  python3 scripts/last30days.py "Claude Code vs Codex"
+  ```
+</ParamField>
+
+## Output and format
+
+<ParamField path="--emit" type="string" default="compact">
+  Controls output format. Choices: `compact`, `json`, `context`, `md`.
+
+  - `compact` — pre-synthesized clusters with citations (default, human-readable)
+  - `json` — full normalized dump with scores, suitable for piping or saving
+  - `context` — compact snippet optimized for injection into other skills
+  - `md` — full markdown artifact for debugging; all items, all transcripts
+
+  ```bash
+  python3 scripts/last30days.py "topic" --emit=json
+  ```
+</ParamField>
+
+<ParamField path="--save-dir" type="string">
+  Directory where output is saved to disk. The directory is created if it does not exist. The filename is derived from the topic slug.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --save-dir=~/Documents/Last30Days
+  ```
+</ParamField>
+
+<ParamField path="--save-suffix" type="string">
+  Appended to the saved filename before the extension. Useful for versioning or tagging runs.
+
+  ```bash
+  # Produces: kanye-west-raw-gemini.md
+  python3 scripts/last30days.py "Kanye West" --save-dir=~/research --save-suffix=gemini
+  ```
+</ParamField>
+
+<ParamField path="--agent" type="boolean">
+  Agent/non-interactive mode. Skips interactive prompts, emits output, and exits. Intended for use inside automation pipelines.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --agent
+  ```
+</ParamField>
+
+## Retrieval depth
+
+<ParamField path="--quick" type="boolean">
+  Lower-latency retrieval profile. Fetches 8–12 results per source. Use when you need a fast answer and completeness is secondary.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --quick
+  ```
+</ParamField>
+
+<ParamField path="--deep" type="boolean">
+  Higher-recall retrieval profile. Fetches 50–70 Reddit results and 40–60 X results. Use when thoroughness matters more than speed.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --deep
+  ```
+</ParamField>
+
+<ParamField path="--days" type="integer" default="30">
+  Number of days to look back. Also accepted as `--lookback-days`. The watchlist mode uses 90 by default regardless of this flag.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --days=7
+  python3 scripts/last30days.py "topic" --lookback-days=90
+  ```
+</ParamField>
+
+<ParamField path="--deep-research" type="boolean">
+  Enables Perplexity Deep Research via OpenRouter. Costs approximately $0.90 per query. Automatically adds `perplexity` to the active source list.
+
+  Requires `OPENROUTER_API_KEY` to be set.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --deep-research
+  ```
+</ParamField>
+
+## Source selection
+
+<ParamField path="--search" type="string">
+  Comma-separated list of sources to query, overriding the default source set. Unknown source names cause an immediate exit.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --search=reddit,x,youtube
+  ```
+</ParamField>
+
+<ParamField path="--web-backend" type="string" default="auto">
+  Web search backend. Choices: `auto`, `brave`, `exa`, `serper`, `parallel`, `none`.
+
+  `auto` tries Brave, then Exa, then Serper, then Parallel in order. Use `none` to disable web search entirely.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --web-backend=brave
+  python3 scripts/last30days.py "topic" --web-backend=none
+  ```
+</ParamField>
+
+## X (Twitter) targeting
+
+<ParamField path="--x-handle" type="string">
+  X handle for targeted supplemental search. Omit the `@` prefix. Runs an additional search scoped to this account's recent posts.
+
+  ```bash
+  python3 scripts/last30days.py "Sam Altman" --x-handle=sama
+  ```
+</ParamField>
+
+<ParamField path="--x-related" type="string">
+  Comma-separated X handles to search at lower weight (0.3). Omit `@` prefixes. Use for adjacent accounts that provide supporting context.
+
+  ```bash
+  python3 scripts/last30days.py "Sam Altman" --x-handle=sama --x-related=OpenAI,TechCrunch
+  ```
+</ParamField>
+
+## Reddit targeting
+
+<ParamField path="--subreddits" type="string">
+  Comma-separated subreddit names to include. Omit the `r/` prefix. Overrides automatic subreddit discovery.
+
+  ```bash
+  python3 scripts/last30days.py "indie hacking" --subreddits=SaaS,Entrepreneur,indiehackers
+  ```
+</ParamField>
+
+## TikTok targeting
+
+<ParamField path="--tiktok-hashtags" type="string">
+  Comma-separated TikTok hashtags to search. Omit the `#` prefix.
+
+  ```bash
+  python3 scripts/last30days.py "screen recording tools" --tiktok-hashtags=tella,screenrecording
+  ```
+</ParamField>
+
+<ParamField path="--tiktok-creators" type="string">
+  Comma-separated TikTok creator handles to include. Omit the `@` prefix.
+
+  ```bash
+  python3 scripts/last30days.py "screen recording tools" --tiktok-creators=TellaHQ,taborplace
+  ```
+</ParamField>
+
+## Instagram targeting
+
+<ParamField path="--ig-creators" type="string">
+  Comma-separated Instagram creator handles to include. Omit the `@` prefix.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --ig-creators=tella.tv,laborstories
+  ```
+</ParamField>
+
+## GitHub targeting
+
+<ParamField path="--github-user" type="string">
+  GitHub username for person-mode search. Omit the `@` prefix. Pulls recent activity for this account.
+
+  ```bash
+  python3 scripts/last30days.py "Peter Steinberger" --github-user=steipete
+  ```
+</ParamField>
+
+<ParamField path="--github-repo" type="string">
+  Comma-separated `owner/repo` pairs for project-mode search. Each entry must include the `/` separator.
+
+  ```bash
+  python3 scripts/last30days.py "Paperclip AI" --github-repo=paperclipai/paperclip
+  python3 scripts/last30days.py "OpenClaw" --github-repo=openclaw/openclaw,openclaw/clawhub
+  ```
+</ParamField>
+
+## Query planning
+
+<ParamField path="--plan" type="string">
+  Provide an external JSON query plan, bypassing the internal LLM planner. Accepts either a raw JSON string or a path to a `.json` file.
+
+  ```bash
+  # Inline JSON string
+  python3 scripts/last30days.py "topic" --plan='{"queries": ["query1", "query2"]}'
+
+  # File path
+  python3 scripts/last30days.py "topic" --plan=./my-plan.json
+  ```
+</ParamField>
+
+<ParamField path="--auto-resolve" type="boolean">
+  Uses web search to discover subreddits, X handles, and GitHub accounts before the planner runs. Equivalent to the manual Steps 0.55 and 0.75 in the skill definition. Useful for platforms without built-in WebSearch (OpenClaw, Codex, raw CLI).
+
+  ```bash
+  python3 scripts/last30days.py "topic" --auto-resolve
+  ```
+</ParamField>
+
+## Storage and persistence
+
+<ParamField path="--store" type="boolean">
+  Persists ranked findings to the local SQLite research store after the run. Reports new and updated finding counts to stderr.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --store
+  ```
+</ParamField>
+
+## Diagnostics and debugging
+
+<ParamField path="--diagnose" type="boolean">
+  Prints provider and source availability as a JSON object, then exits. Does not run a full research pipeline.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --diagnose
+  ```
+</ParamField>
+
+<ParamField path="--debug" type="boolean">
+  Enables verbose HTTP debug logging. Sets `LAST30DAYS_DEBUG=1` in the process environment.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --debug
+  ```
+</ParamField>
+
+<ParamField path="--mock" type="boolean">
+  Uses mock retrieval fixtures instead of live API calls. Intended for development and testing.
+
+  ```bash
+  python3 scripts/last30days.py "topic" --mock
+  ```
+</ParamField>

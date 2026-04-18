@@ -1,0 +1,80 @@
+---
+title: "last30days: AI research skill for any topic"
+description: "last30days is an AI skill that searches Reddit, X, YouTube, HN, Polymarket, GitHub, and TikTok in parallel. Ranked by real engagement, not editorial curation."
+---
+
+last30days is an AI agent skill — not a traditional search engine — that searches more than a dozen social platforms simultaneously and ranks what it finds by the signals real people leave behind: upvotes, likes, retweets, prediction-market odds, and GitHub stars. You type a topic once. The agent resolves who matters, fires parallel queries across every platform, merges duplicate stories into single clusters, and hands you one synthesis brief with citations. No tab-hopping, no stale blog posts, no editorial gatekeeping.
+
+## Why it exists
+
+Every major AI has a deal with one or two platforms and walls itself off from the rest. ChatGPT can search Reddit but not X. Gemini has YouTube but not Reddit. Claude has none of them natively. Each platform is its own walled garden with its own API, its own tokens, its own auth.
+
+last30days bridges them. You bring your own keys and browser sessions, and the agent searches all of them at once. The result is a research depth that no single AI product can match — because the data was never in one place to begin with.
+
+> **Google aggregates editors. last30days searches people.**
+
+A Reddit thread with 1,500 upvotes is a stronger signal than a blog post nobody read. A TikTok with 3.6M views tells you more about cultural relevance than a press release. Polymarket odds backed by real money are harder to argue with than a pundit's guess. That's the scoring model.
+
+## Sources
+
+| Source | What it tells you |
+|--------|-------------------|
+| **Reddit** | The unfiltered take. Top comments with upvote counts, free via public JSON. The real opinions Google buries. |
+| **X / Twitter** | The hot take, the expert thread, the breaking reaction. First to know, first to argue. |
+| **YouTube** | Full transcripts searched for the quotable sentences that matter — from 45-minute deep dives. |
+| **TikTok** | The creator reaching millions with a take you'll never find on Google. |
+| **Instagram Reels** | Spoken-word transcripts from influencer content. The visual culture signal. |
+| **Hacker News** | The developer consensus. Where technical people actually argue, scored by points and comment count. |
+| **Polymarket** | Not opinions — odds. Backed by real money and insider information. |
+| **GitHub** | PR velocity, top repos by stars, release notes, issues, and discussions. |
+| **Threads** | Post-Twitter text conversations from creators and brands. |
+| **Pinterest** | Visual discovery: pins, saves, and comments on products and ideas. |
+| **Bluesky** | AT Protocol posts from the post-Twitter migration crowd. |
+| **Perplexity** | Grounded web search with citations via Sonar Pro. |
+| **Web** | Editorial coverage and blog comparisons — one signal among many. |
+
+Community contributors are adding more: Truth Social, Xiaohongshu (RED), and others are already in the pipeline.
+
+## Supported platforms
+
+| Surface | Install |
+|---------|---------|
+| **Claude Code** | `/plugin marketplace add mvanhorn/last30days-skill` |
+| **OpenClaw / clawhub** | `clawhub install last30days-official` |
+| **Gemini CLI** | Clone + `gemini extensions install ./last30days-skill` |
+| **claude.ai web** | Download `last30days.skill` from the latest GitHub release and upload via Settings |
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Parallel multi-source search" icon="bolt">
+    All sources fire simultaneously. A query that used to take 12+ minutes in serial pipelines completes in about 3 minutes with v3's single-pass engine.
+  </Card>
+  <Card title="Engagement-scored ranking" icon="arrow-up">
+    Results are ranked by what real people actually engaged with — upvotes, likes, view counts, and prediction-market odds — not by SEO or editorial selection.
+  </Card>
+  <Card title="Intelligent topic resolution" icon="magnifying-glass">
+    The v3 pre-research brain resolves X handles, GitHub repos, subreddits, and TikTok hashtags before a single API call fires. "OpenClaw" resolves to @steipete automatically.
+  </Card>
+  <Card title="Cross-source cluster merging" icon="object-group">
+    When the same story appears on Reddit, X, and YouTube, v3 merges them into one cluster using entity-based overlap detection — even when titles use different words.
+  </Card>
+  <Card title="Full transcript search" icon="file-lines">
+    YouTube transcripts are searched for the 5 quotable sentences that matter, not just titles and thumbnails. TikTok captions included.
+  </Card>
+  <Card title="ELI5 mode" icon="circle-info">
+    Say "eli5 on" after any research run. The synthesis rewrites in plain language with the same data, same sources, and same citations — just clearer.
+  </Card>
+  <Card title="GitHub person-mode" icon="code-branch">
+    When the topic is a person, the engine switches to author-scoped queries: PRs merged, merge rate, own projects with star counts and top feature requests.
+  </Card>
+  <Card title="Best Takes section" icon="star">
+    A second judge scores every result for humor, wit, and virality alongside relevance. Every brief ends with the cleverest one-liners and most viral quotes.
+  </Card>
+</CardGroup>
+
+## Open source
+
+last30days is MIT-licensed with no telemetry and no analytics. Your research stays on your machine. The codebase ships with 1,012 tests.
+
+Built with Python 3.12+, yt-dlp, Node.js (vendored Bird client for X search), and the ScrapeCreators API. The v3 engine architecture was built by [@j-sperling](https://github.com/j-sperling).

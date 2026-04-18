@@ -1,0 +1,179 @@
+---
+title: "First-run setup wizard for last30days"
+description: "last30days runs a one-time setup wizard on first use to configure X/Twitter, YouTube, and optional sources. Takes 30 seconds and runs once ever."
+---
+
+The first time you run last30days, a setup wizard walks you through configuring your sources. It takes about 30 seconds, runs exactly once, and is never shown again. After it completes, every subsequent run skips straight to research.
+
+## How first-run detection works
+
+The wizard checks for `~/.config/last30days/.env` on startup. If the file does not exist, this is your first run. Once setup finishes, the wizard writes `SETUP_COMPLETE=true` to that file and never runs again.
+
+<Note>
+If `~/.config/last30days/.env` already exists and contains `SETUP_COMPLETE=true`, the wizard is silently skipped. No status message is shown — last30days goes straight to research.
+</Note>
+
+## Setup flows by platform
+
+The wizard has two flows depending on whether your platform has web search capability.
+
+<Tabs>
+  <Tab title="Claude Code (has WebSearch)">
+    Claude Code detects WebSearch and runs the standard auto-setup flow.
+
+    <Steps>
+      <Step title="Welcome screen">
+        last30days displays a summary of what each source unlocks and asks how you want to set up:
+
+        - **Auto setup (~30 seconds)** — scans browser cookies for X and installs yt-dlp for YouTube
+        - **Manual setup** — shows you what to configure and where
+        - **Skip for now** — proceeds immediately with Reddit, HN, Polymarket, and GitHub (if `gh` CLI is installed)
+      </Step>
+
+      <Step title="Cookie consent prompt">
+        Before scanning your browser, last30days asks for explicit consent:
+
+        > "Auto setup will scan your browser for x.com cookies to authenticate X search. Cookies are read live, not saved to disk. Chrome on macOS will prompt for Keychain access. OK to proceed?"
+
+        You can choose to:
+        - **Yes, scan cookies for X** — proceeds with full auto setup
+        - **Skip X, just set up YouTube** — installs yt-dlp only, no cookie scan
+        - **I have an xAI API key instead** — pastes the key and installs yt-dlp
+
+        <Tip>
+          This prompt is skipped on subsequent runs if `BROWSER_CONSENT=true` is already in your `.env`.
+        </Tip>
+      </Step>
+
+      <Step title="Auto setup runs">
+        last30days scans your browser for x.com session cookies and installs yt-dlp via Homebrew if it is not already installed. Results are shown immediately — which cookies were found and whether yt-dlp was installed.
+
+        **Browser behavior during cookie scan:**
+
+        | Browser | Keychain prompt? |
+        |---|---|
+        | Chrome (macOS) | Yes — prompted once |
+        | Firefox | No |
+        | Safari | No |
+
+        Cookies are read live at search time. They are never written to disk by last30days.
+      </Step>
+
+      <Step title="ScrapeCreators offer (optional)">
+        After auto setup, last30days offers ScrapeCreators to unlock TikTok, Instagram, and a Reddit backup. This is optional — 10,000 free calls, no credit card required.
+
+        <CardGroup cols={3}>
+          <Card title="Via GitHub CLI" icon="github">
+            Registers in ~2 seconds using your existing GitHub login. No browser needed if `gh` CLI is installed.
+          </Card>
+          <Card title="Via scrapecreators.com" icon="globe">
+            Opens scrapecreators.com in your browser for Google sign-in. Paste the key when prompted.
+          </Card>
+          <Card title="I have a key" icon="key">
+            Paste your key directly into the terminal.
+          </Card>
+        </CardGroup>
+
+        <Note>
+          last30days has no affiliation with ScrapeCreators — no referrals, no kickbacks.
+        </Note>
+      </Step>
+
+      <Step title="Source opt-in (after ScrapeCreators key)">
+        Once your ScrapeCreators key is saved, last30days asks which sources to enable for every run:
+
+        | Choice | Written to `.env` |
+        |---|---|
+        | TikTok + Instagram (recommended) | `INCLUDE_SOURCES=tiktok,instagram` |
+        | Everything | `INCLUDE_SOURCES=tiktok,instagram,threads,pinterest,youtube_comments,tiktok_comments` |
+        | Just the basics | Nothing written; ScrapeCreators serves as Reddit backup only |
+
+        You can add or change sources in your `.env` at any time.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="OpenClaw / non-WebSearch platforms">
+    On platforms without WebSearch (OpenClaw, Codex, raw CLI), the wizard runs environment detection first, then presents options for each missing item.
+
+    <Steps>
+      <Step title="Environment detection">
+        last30days runs:
+
+        ```bash
+        python3 scripts/last30days.py setup --openclaw
+        ```
+
+        The JSON output reports what is already configured: yt-dlp, X/Twitter auth method, ScrapeCreators, and web search backend.
+      </Step>
+
+      <Step title="Status summary">
+        last30days displays a summary:
+
+        ```
+        👋 Welcome to /last30days!
+
+        Detected:
+        ✅ yt-dlp (YouTube search)
+        ❌ X/Twitter (not configured)
+        ❌ ScrapeCreators (TikTok, Instagram, Reddit backup)
+        ✅ Web search (Brave configured)
+        ```
+      </Step>
+
+      <Step title="Setup each missing item">
+        last30days offers setup for each missing source in priority order:
+
+        1. **ScrapeCreators** — GitHub CLI (fastest) or manual key paste
+        2. **X/Twitter** — xAI API key or manual `AUTH_TOKEN` + `CT0` cookies
+        3. **YouTube** — install yt-dlp via `pip install yt-dlp`
+        4. **Web search** — Brave Search key (2,000 free queries/month)
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Skip option
+
+Selecting **Skip for now** proceeds immediately to research without touching `.env`. Sources available without any setup:
+
+- Reddit (threads and comments)
+- Hacker News
+- Polymarket
+- GitHub (if `gh` CLI is installed)
+
+X/Twitter and YouTube require setup.
+
+## Configuration file template
+
+The manual setup path creates `~/.config/last30days/.env` pre-populated with this template:
+
+```bash ~/.config/last30days/.env
+# /last30days configuration
+# FROM_BROWSER=auto
+# XAI_API_KEY=
+# AUTH_TOKEN=
+# CT0=
+# SCRAPECREATORS_API_KEY=
+# INCLUDE_SOURCES=tiktok,instagram
+# BRAVE_API_KEY=
+# OPENROUTER_API_KEY=
+# BSKY_HANDLE=you.bsky.social
+# BSKY_APP_PASSWORD=
+SETUP_COMPLETE=true
+```
+
+<Warning>
+Never overwrite an existing `.env` file. Always append new keys with `>>` (double redirect). Using `>` destroys your existing configuration.
+</Warning>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="API keys and credentials" icon="key" href="/configuration/api-keys">
+    Every credential last30days supports, what each unlocks, and how to add it.
+  </Card>
+  <Card title="Configure sources" icon="sliders" href="/configuration/sources">
+    Control which platforms last30days searches on every run.
+  </Card>
+</CardGroup>

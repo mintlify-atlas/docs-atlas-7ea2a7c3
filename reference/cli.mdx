@@ -1,0 +1,207 @@
+---
+title: "last30days CLI — commands and subcommands"
+description: "Complete CLI reference for last30days. Run research queries, setup configuration, diagnose source availability, and manage the research store."
+---
+
+The `last30days` CLI is a Python script that researches any topic across Reddit, X, YouTube, and web sources. You invoke it directly with a topic and optional flags, or through Claude Code and OpenClaw as a slash command.
+
+## Requirements
+
+last30days requires Python 3.12 or later. The skill's runtime preflight automatically selects the correct interpreter:
+
+```bash
+for py in python3.14 python3.13 python3.12 python3; do
+  command -v "$py" >/dev/null 2>&1 || continue
+  "$py" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 12) else 1)' || continue
+  LAST30DAYS_PYTHON="$py"
+  break
+done
+```
+
+If no compatible Python is found, the CLI exits with an error message and a `SystemExit(1)`.
+
+## Main command
+
+```bash
+python3 scripts/last30days.py <topic> [options]
+```
+
+The `topic` argument is one or more words that form your research query. Words are joined with spaces before the pipeline runs.
+
+```bash
+python3 scripts/last30days.py "Sam Altman"
+python3 scripts/last30days.py "Claude Code vs Codex"
+python3 scripts/last30days.py "Universal Epic Universe"
+```
+
+## Via Claude Code
+
+After installing the skill, use the `/last30days` slash command directly in Claude Code:
+
+```
+/last30days Sam Altman
+/last30days Claude Code vs Codex
+/last30days Universal Epic Universe
+```
+
+## Via OpenClaw (clawhub)
+
+After running `clawhub install last30days-official`, the `/last30days` command is available in all OpenClaw sessions. No additional setup is needed.
+
+## Subcommands
+
+### setup
+
+Runs first-time configuration. Scans browser cookies, installs `yt-dlp`, and writes credentials to `~/.config/last30days/.env`.
+
+<Tabs>
+  <Tab title="Auto setup">
+    ```bash
+    python3 scripts/last30days.py setup
+    ```
+    Scans for cookies from installed browsers and installs `yt-dlp` automatically. Writes the resulting configuration to disk.
+  </Tab>
+  <Tab title="OpenClaw setup">
+    ```bash
+    python3 scripts/last30days.py setup --openclaw
+    ```
+    Runs the OpenClaw/non-WebSearch configuration flow. Outputs results as JSON.
+  </Tab>
+  <Tab title="GitHub auth">
+    ```bash
+    python3 scripts/last30days.py setup --github
+    ```
+    Registers ScrapeCreators via GitHub OAuth. Outputs results as JSON.
+  </Tab>
+  <Tab title="Device auth">
+    ```bash
+    python3 scripts/last30days.py setup --device-auth
+    ```
+    Runs the full device auth flow for all supported providers. Outputs results as JSON.
+  </Tab>
+</Tabs>
+
+### diagnose
+
+Prints a JSON object describing which providers and sources are currently available given your configuration.
+
+```bash
+python3 scripts/last30days.py "topic" --diagnose
+```
+
+<Note>
+  The `--diagnose` flag requires a topic argument — the pipeline runs a config check scoped to that topic's source set. You can use any placeholder topic.
+</Note>
+
+Example output:
+
+```json
+{
+  "available_sources": ["reddit", "x", "grounding", "youtube"],
+  "provider_status": {
+    "openai": "ok",
+    "xai": "ok"
+  }
+}
+```
+
+## Quick examples
+
+<Steps>
+  <Step title="Basic research run">
+    Research a topic over the default 30-day window:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman"
+    ```
+  </Step>
+  <Step title="Target an X handle">
+    Add supplemental X search focused on a specific account:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" --x-handle=sama --x-related=OpenAI,TechCrunch
+    ```
+  </Step>
+  <Step title="Adjust depth">
+    Use `--quick` for lower latency or `--deep` for higher recall:
+
+    ```bash
+    python3 scripts/last30days.py "topic" --quick
+    python3 scripts/last30days.py "topic" --deep
+    ```
+  </Step>
+  <Step title="Custom lookback window">
+    Look back 7 days instead of the default 30:
+
+    ```bash
+    python3 scripts/last30days.py "topic" --days=7
+    ```
+  </Step>
+  <Step title="Save output to disk">
+    Write results to a directory with an optional filename suffix:
+
+    ```bash
+    python3 scripts/last30days.py "topic" --save-dir=~/research --save-suffix=v3
+    ```
+  </Step>
+  <Step title="Machine-readable output">
+    Emit normalized JSON for programmatic use:
+
+    ```bash
+    python3 scripts/last30days.py "topic" --emit=json > research.json
+    ```
+  </Step>
+  <Step title="Persist to the research store">
+    Save ranked findings to the local SQLite store for later querying:
+
+    ```bash
+    python3 scripts/last30days.py "topic" --store
+    ```
+  </Step>
+</Steps>
+
+## Common flag combinations
+
+<CardGroup cols={2}>
+  <Card title="Person research" icon="user">
+    Research a person with X handle and related accounts:
+
+    ```bash
+    python3 scripts/last30days.py "Sam Altman" \
+      --x-handle=sama \
+      --x-related=OpenAI,TechCrunch \
+      --github-user=sama
+    ```
+  </Card>
+  <Card title="Project research" icon="folder">
+    Research an open-source project via GitHub repos:
+
+    ```bash
+    python3 scripts/last30days.py "Claude Code" \
+      --github-repo=anthropics/claude-code \
+      --deep
+    ```
+  </Card>
+  <Card title="Community research" icon="users">
+    Target specific subreddits and TikTok creators:
+
+    ```bash
+    python3 scripts/last30days.py "indie hacking" \
+      --subreddits=SaaS,Entrepreneur,indiehackers \
+      --tiktok-hashtags=indiedev,buildinpublic
+    ```
+  </Card>
+  <Card title="Deep analysis" icon="magnifying-glass">
+    Run Perplexity Deep Research for comprehensive coverage:
+
+    ```bash
+    python3 scripts/last30days.py "topic" \
+      --deep-research \
+      --emit=json
+    ```
+  </Card>
+</CardGroup>
+
+<Warning>
+  `--deep-research` costs approximately $0.90 per query and requires `OPENROUTER_API_KEY` to be set in your environment.
+</Warning>

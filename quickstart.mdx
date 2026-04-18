@@ -1,80 +1,90 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Get started with last30days"
+description: "Run your first last30days research query in under two minutes. Reddit, Hacker News, Polymarket, and GitHub work with zero configuration."
 ---
 
-## Get started in three steps
-
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+You can run your first last30days research query in under two minutes. Four sources — Reddit (with full comments), Hacker News, Polymarket, and GitHub — work immediately with no API keys, no credentials, and no setup. The setup wizard that runs on first use unlocks X and YouTube in about 30 seconds and is entirely optional.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Reddit with comments, Hacker News, Polymarket, and GitHub are always on. You don't need any API key or account to use them. That's roughly 40% of the signal available, and for many topics it's all you'll need.
 </Note>
+
+## Run your first query
+
+<Steps>
+  <Step title="Install on Claude Code">
+    Open Claude Code and run:
+
+    ```text
+    /plugin marketplace add mvanhorn/last30days-skill
+    ```
+
+    The plugin installs in seconds. No restart required.
+  </Step>
+
+  <Step title="Run a research query">
+    Type a topic — a person, a company, a product, a comparison, anything:
+
+    ```text
+    /last30days Sam Altman
+    ```
+
+    ```text
+    /last30days Claude Code vs Codex
+    ```
+
+    ```text
+    /last30days Universal Epic Universe
+    ```
+
+    The first time you run the skill, the setup wizard appears. It takes about 10 seconds to complete and only ever runs once. Your topic is preserved — research starts immediately after.
+  </Step>
+
+  <Step title="Complete the setup wizard">
+    The wizard asks how you want to set up:
+
+    - **Auto setup (~30 seconds)** — scans your browser cookies for X authentication and installs yt-dlp for YouTube. Recommended for most users.
+    - **Manual setup** — shows you each option individually so you can configure only what you want.
+    - **Skip for now** — proceeds immediately with Reddit, HN, Polymarket, and GitHub only.
+
+    If you choose auto setup, Claude will ask for cookie consent before scanning your browser. Cookies are read live and never saved to disk.
+  </Step>
+
+  <Step title="Read your synthesis brief">
+    last30days returns a synthesis brief: a structured summary grounded in specific data, cited by source, and ranked by real engagement. For `/last30days Sam Altman` you might see:
+
+    - What he's posted on X in the last 30 days
+    - Reddit threads discussing his work (with upvote counts)
+    - YouTube transcripts from interviews or reaction videos
+    - GitHub activity if he has public commits
+    - Polymarket odds on anything he's attached to
+    - A "Best Takes" section with the most viral quotes from the community
+
+    After the first run, your Claude session knows everything the community knows. Ask follow-up questions, draft emails, or plan next steps — all grounded in what's real right now.
+  </Step>
+</Steps>
+
+## Source quality tiers
+
+How much signal you get depends on which sources you've configured. Each tier adds more platforms on top of the previous one.
+
+| Tier | Sources unlocked | What you need |
+|------|-----------------|---------------|
+| **Zero config (≈40%)** | Reddit (with comments), Hacker News, Polymarket, GitHub | Nothing |
+| **+ X (≈60%)** | Everything above + X / Twitter | Log into x.com in any browser |
+| **+ YouTube (≈80%)** | Everything above + YouTube transcripts | `brew install yt-dlp` |
+| **+ ScrapeCreators (100%)** | Everything above + TikTok, Instagram, Threads, Pinterest, YouTube comments | ScrapeCreators API key (10,000 free calls) |
+
+<Tip>
+  Auto setup in the wizard handles X and YouTube for you automatically. ScrapeCreators is offered as an optional add-on during setup — it provides 10,000 free API calls and no credit card is required.
+</Tip>
+
+## What to run next
+
+Once you've completed your first query, try these to explore what the skill can do:
+
+- **Research a person before a meeting:** `/last30days [name]` — pulls their recent X posts, Reddit mentions, YouTube transcripts, and GitHub activity into one brief.
+- **Compare two tools:** `/last30days Claude Code vs Codex` — v3 runs both sides simultaneously in a single pass rather than two serial queries.
+- **Track a breaking story:** `/last30days [event or topic]` — surfaces Reddit threads, X reactions, YouTube coverage, and Polymarket odds all at once.
+- **Enable ELI5 mode:** After any research run, say "eli5 on" to rewrite the synthesis in plain language with no jargon.
+- **GitHub person-mode:** Add `--github-user=username` to switch from keyword search to author-scoped queries showing PRs merged and projects shipped.
